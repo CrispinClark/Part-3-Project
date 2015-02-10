@@ -5,6 +5,7 @@
  */
 package Control;
 
+import Model.PopulationModel;
 import View.RootPane;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -19,9 +20,16 @@ public class ApplicationLauncher extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Game Theory Simulation");
         
-        RootPane root = new RootPane();
+        Controller control = new Controller();
+        RootPane view = new RootPane(control);
+        PopulationModel model = new PopulationModel(control);        
         
-        primaryStage.setScene(new Scene(root, 500, 250));
+        control.setView(view);
+        control.setModel(model);
+        
+        primaryStage.setScene(new Scene(view, 500, 315));
         primaryStage.show();
+        
+        view.fillDefaults();
     }
 }

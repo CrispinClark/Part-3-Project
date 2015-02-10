@@ -11,15 +11,21 @@ package Model;
  */
 public class TwoAgentGame 
 {
-    private int temptation = 5;
-    private int reward = 3;
-    private int punishment = 2;
-    private int sucker = 1;
+    private int temptation;
+    private int reward;
+    private int punishment;
+    private int sucker;
     
     private Agent agent1, agent2;
     
-    public TwoAgentGame(Agent agent1, Agent agent2) throws Exception
+    public TwoAgentGame(int temptation, int reward, int punishment, int sucker,
+            Agent agent1, Agent agent2) throws Exception
     {        
+        this.temptation = temptation;
+        this.reward = reward;
+        this.punishment = punishment;
+        this.sucker = sucker;
+        
         if (agent1.equals(agent2))
         {
             throw new Exception("Trying to create a game with identical agents");

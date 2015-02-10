@@ -5,6 +5,7 @@
  */
 package Model;
 
+import Control.Controller;
 import Model.Agent.Strategy;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,39 +15,50 @@ import java.util.Random;
  *
  * @author Crispin
  */
-public class Population 
+public class PopulationModel 
 {
-    final private ArrayList<Agent> agents;
-    final private int populationSize;    
+    final private Controller control;
+    
+    private int populationSize = 100;
+    private int noOfGames = 10;
 
+    private int temptation = 5;
+    private int reward = 3;
+    private int punishment = 2;
+    private int sucker = 1;
+    
+    final private ArrayList<Agent> agents;
+    
+    public enum EvoType{TRIM, TOURNAMENT, PLAYOFF}
+    private EvoType evoType = EvoType.TRIM;
+    
+    private Boolean clearScores = false;
+    private Boolean clearVendettas = false;
+    
+    final private ArrayList<Agent.Strategy> availableStrategies;
     private Agent.Strategy winningStrategy;
+   
     
     private int iteration = 0;
     
-    public Population(int populationSize)
+    public PopulationModel(Controller control)
     {
-        agents = new ArrayList<>(populationSize);
-        this.populationSize = populationSize;
+        this.control = control;
+        
+        agents = new ArrayList<>(getPopulationSize());
+        availableStrategies = new ArrayList<>();
     }
     
     public void randomlyFillPopulation()
     {
+        int noOfStrategies = availableStrategies.size();
         Random rand = new Random();
         
-        for (int i = 0; i < populationSize; i++)
+        for (int i = 0; i < getPopulationSize(); i++)
         {
-            int strategyNumber = rand.nextInt(4);
+            int strategyNumber = rand.nextInt(noOfStrategies);
             
-            Agent agent;
-            
-            if (strategyNumber == 0)
-                agent = new Agent(Agent.Strategy.ALWAYS_COOPERATE);
-            else if (strategyNumber == 1)
-                agent = new Agent(Agent.Strategy.ALWAYS_DEFECT);
-            else if (strategyNumber == 2)
-                agent = new Agent(Agent.Strategy.TIT_FOR_TAT_PERSONAL);
-            else 
-                agent = new Agent(Agent.Strategy.ALTERNATE);
+            Agent agent = new Agent(availableStrategies.get(strategyNumber));
             
             agents.add(agent);
         }
@@ -54,6 +66,8 @@ public class Population
     
     public void runSimulation()
     {        
+        randomlyFillPopulation();
+        
         while (!testConvergence())
         {
             iteration++;
@@ -67,7 +81,8 @@ public class Population
                 
                 try
                 {
-                    TwoAgentGame game = new TwoAgentGame(agent1, agent2);
+                    TwoAgentGame game = new TwoAgentGame(temptation, reward, 
+                            punishment, sucker, agent1, agent2);
                     game.play();
                 }
                 catch (Exception e)
@@ -78,7 +93,7 @@ public class Population
             
             //printState();
             
-            if (iteration % 100 == 0)
+            if (iteration % noOfGames == 0)
             {
                 //evolveByTournament();
                 evolveByTrim();
@@ -88,7 +103,16 @@ public class Population
             }
         }
         
-        printState();    
+        printState();
+        
+        resetValues();
+    }
+    
+    public void resetValues()
+    {
+        clearStrategies();
+        agents.clear();
+        iteration = 0;
     }
     
     //Implementation of Fisher-Yates shuffle
@@ -126,12 +150,11 @@ public class Population
     {
         Collections.sort(agents);
         
-        int trimSize = populationSize/10;
+        int trimSize = getPopulationSize()/10;
         
         for (int i = 0; i < trimSize; i++)
         {
-            agents.get(i).setStrategy(
-                    agents.get(populationSize - 1 - i).getStrategy());
+            agents.get(i).setStrategy(agents.get(getPopulationSize() - 1 - i).getStrategy());
         }
         
         for (Agent a : agents)
@@ -145,8 +168,8 @@ public class Population
     {
         Random r = new Random();
         
-        Agent agent1 = agents.get(r.nextInt(populationSize));
-        Agent agent2 = agents.get(r.nextInt(populationSize));
+        Agent agent1 = agents.get(r.nextInt(getPopulationSize()));
+        Agent agent2 = agents.get(r.nextInt(getPopulationSize()));
         
         if (agent1.getScore() > agent2.getScore())
         {
@@ -201,7 +224,7 @@ public class Population
         ArrayList<Agent> t4tps = new ArrayList<>();
         ArrayList<Agent> alternators = new ArrayList<>();
         
-        for (int i = 0; i < populationSize; i++)
+        for (int i = 0; i < getPopulationSize(); i++)
         {
             Agent agent = agents.get(i);
             Strategy strategy = agent.getStrategy();
@@ -247,5 +270,121 @@ public class Population
             System.out.print(alternator.getScore() + " ");
         }*/
         System.out.println("");
+    }
+
+    /**
+     * @return the populationSize
+     */
+    public int getPopulationSize() {
+        return populationSize;
+    }
+
+    /**
+     * @param populationSize the populationSize to set
+     */
+    public void setPopulationSize(int populationSize) {
+        this.populationSize = populationSize;
+    }
+
+    /**
+     * @return the noOfGames
+     */
+    public int getNoOfGames() {
+        return noOfGames;
+    }
+
+    /**
+     * @param noOfGames the noOfGames to set
+     */
+    public void setNoOfGames(int noOfGames) {
+        this.noOfGames = noOfGames;
+    }
+
+    /**
+     * @return the temptation
+     */
+    public int getTemptation() {
+        return temptation;
+    }
+
+    /**
+     * @param temptation the temptation to set
+     */
+    public void setTemptation(int temptation) {
+        this.temptation = temptation;
+    }
+
+    /**
+     * @return the reward
+     */
+    public int getReward() {
+        return reward;
+    }
+
+    /**
+     * @param reward the reward to set
+     */
+    public void setReward(int reward) {
+        this.reward = reward;
+    }
+
+    /**
+     * @return the punishment
+     */
+    public int getPunishment() {
+        return punishment;
+    }
+
+    /**
+     * @param punishment the punishment to set
+     */
+    public void setPunishment(int punishment) {
+        this.punishment = punishment;
+    }
+
+    /**
+     * @return the sucker
+     */
+    public int getSucker() {
+        return sucker;
+    }
+
+    /**
+     * @param sucker the sucker to set
+     */
+    public void setSucker(int sucker) {
+        this.sucker = sucker;
+    }
+    
+    public void setEvoType(String s) throws Exception
+    {
+        if (s.equals("Trim"))
+            this.evoType = EvoType.TRIM;
+        else if (s.equals("Tournament"))
+            this.evoType = EvoType.TOURNAMENT;
+        else if (s.equals("Playoff"))
+            this.evoType = EvoType.PLAYOFF;
+        else
+            throw new Exception("Error setting evo type");
+    }
+    
+    public void setClearScores(Boolean b)
+    {
+        this.clearScores = b;
+    }
+    
+    public void setClearVendettas(Boolean b)
+    {
+        this.clearVendettas = b;
+    }
+    
+    public void clearStrategies()
+    {
+        availableStrategies.clear();
+    }
+    
+    public void addStrategy(Agent.Strategy strategy)
+    {
+        availableStrategies.add(strategy);
     }
 }

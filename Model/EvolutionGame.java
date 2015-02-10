@@ -5,6 +5,8 @@
  */
 package Model;
 
+import Control.Controller;
+
 /**
  *
  * @author Crispin
@@ -13,8 +15,15 @@ public class EvolutionGame
 {
     public void playGame()
     {
-        Population population = new Population(100);
-        population.randomlyFillPopulation();
+        Controller control = new Controller();
+        
+        PopulationModel population = new PopulationModel(control);
+        //population.randomlyFillPopulation();
+        
+        population.addStrategy(Agent.Strategy.ALTERNATE);
+        population.addStrategy(Agent.Strategy.TIT_FOR_TAT_PERSONAL);
+        population.addStrategy(Agent.Strategy.ALWAYS_COOPERATE);
+        population.addStrategy(Agent.Strategy.ALWAYS_DEFECT);
         
         population.runSimulation();
     }
