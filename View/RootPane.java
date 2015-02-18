@@ -43,7 +43,7 @@ public class RootPane extends BorderPane
     
     final private ScrollPane stratScroll;
     final private Label stratTitle;
-    final private CheckBox coop, def, t4tp, alt;
+    final private CheckBox coop, def, t4tp, alt, ran;
     
     final private Button runBtn;
     
@@ -76,6 +76,8 @@ public class RootPane extends BorderPane
         t4tp.setSelected(true);
         alt = new CheckBox("Alternate");
         alt.setSelected(true);
+        ran = new CheckBox("Random");
+        ran.setSelected(true);
         
         suckLab = new Label("Sucker:");
         tempLab = new Label("Temptation:");
@@ -100,9 +102,11 @@ public class RootPane extends BorderPane
             public void handle(ActionEvent event) {
                 try
                 {
+                    runBtn.setDisable(true);
                     setNewVariables();
                     setAvailableStrategies();
                     control.runSimulation();
+                    runBtn.setDisable(false);
                 }
                 catch(Exception e)
                 {
@@ -182,7 +186,7 @@ public class RootPane extends BorderPane
     private FlowPane createScrollContentPane()
     {
         FlowPane fp = new FlowPane(Orientation.VERTICAL);
-        fp.getChildren().addAll(alt, coop, def, t4tp);
+        fp.getChildren().addAll(alt, coop, def, t4tp, ran);
         
         return fp;
     }
@@ -278,7 +282,10 @@ public class RootPane extends BorderPane
         control.setClearVendettas(vendettasCheck.isSelected());
         
         if (error)
+        {
+            runBtn.setDisable(false);
             throw new Exception("Variables input incorrectly");
+        }
         
     }
     
@@ -300,6 +307,10 @@ public class RootPane extends BorderPane
         if (alt.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.ALTERNATE);
+        }
+        if (ran.isSelected())
+        {
+            control.addStrategy(Model.Agent.Strategy.RANDOM);
         }
     }
     

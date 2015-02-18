@@ -32,14 +32,13 @@ public class PopulationModel
     public enum EvoType{TRIM, TOURNAMENT, PLAYOFF}
     private EvoType evoType = EvoType.TRIM;
     
-    private Boolean clearScores = false;
-    private Boolean clearVendettas = false;
+    private Boolean clearVendettas, clearScores = false;
     
     final private ArrayList<Agent.Strategy> availableStrategies;
     private Agent.Strategy winningStrategy;
-   
     
     private int iteration = 0;
+    private long startTime;
     
     public PopulationModel(Controller control)
     {
@@ -66,31 +65,50 @@ public class PopulationModel
     
     public void runSimulation()
     {        
+        startTime = System.currentTimeMillis();
         randomlyFillPopulation();
+        System.out.println("Time taken to fill population = " 
+                + (System.currentTimeMillis() - startTime)/1000000);        
+        startTime = System.currentTimeMillis();
+        
+        printState();
         
         while (!testConvergence())
         {
+            /*System.out.println("Time taken to test convergence = " 
+                + (System.currentTimeMillis() - startTime)/1000000);        
+            startTime = System.currentTimeMillis();
+            */
             iteration++;
+            //System.out.println("Iteration " + iteration); 
             
             shufflePopulation();
-        
+            /*System.out.println("Time taken to shuffle population = " 
+                + (System.currentTimeMillis() - startTime)/1000000);        
+            startTime = System.currentTimeMillis();
+            */
+            
             for (int i = 0; i < agents.size()/2; i++)
             {
                 Agent agent1 = agents.get(2*i);
                 Agent agent2 = agents.get((2*i) + 1);
                 
+                //System.out.println(iteration + " Playing game " + i);
+                
                 try
                 {
-                    TwoAgentGame game = new TwoAgentGame(temptation, reward, 
-                            punishment, sucker, agent1, agent2);
-                    game.play();
+                    agent1.playAgainst(agent2, reward, temptation, sucker, 
+                            punishment);
                 }
                 catch (Exception e)
                 {
-                    System.err.println(e.getMessage());
+                    e.printStackTrace();
                 }
             }
-            
+            /*System.out.println("Time taken to play games = " 
+                + (System.currentTimeMillis() - startTime)/1000);        
+            startTime = System.currentTimeMillis();
+            */
             //printState();
             
             if (iteration % noOfGames == 0)
@@ -99,11 +117,15 @@ public class PopulationModel
                 evolveByTrim();
                 //evolveByPlayoff();
                 
+                /*System.out.println("Time taken to evolve = " 
+                    + (System.currentTimeMillis() - startTime));        
+                startTime = System.currentTimeMillis();
+                */
+                
+                addGraphData();
                 printState();
             }
         }
-        
-        printState();
         
         resetValues();
     }
@@ -154,14 +176,27 @@ public class PopulationModel
         
         for (int i = 0; i < trimSize; i++)
         {
-            agents.get(i).setStrategy(agents.get(getPopulationSize() - 1 - i).getStrategy());
+            //System.out.println("Swapping agent " + i + " with " + (getPopulationSize() - 1 - i));
+            //System.out.println(agents.get(i).getStrategyString() + " with " + agents.get((getPopulationSize() - 1 - i)).getStrategyString());
+            
+            Agent removal = agents.get(i);
+            
+            agents.stream().forEach((a) -> 
+            {
+                a.getVendettas().remove(removal);
+            });
+            
+            agents.set(i, new Agent(agents.get(getPopulationSize() - 1 - i).getStrategy()));
         }
         
-        for (Agent a : agents)
-        {
-            a.resetScore();
-            //a.clearVendettas();
-        }
+        agents.stream().forEach((a) -> {
+                a.resetScore();
+        });
+
+        if (clearVendettas)
+            agents.stream().forEach((a) -> {
+                a.clearVendettas();
+        });
     }
     
     public void evolveByPlayoff()
@@ -182,11 +217,15 @@ public class PopulationModel
         
         printState();
         
-        for (Agent a : agents)
-        {
+        //RESET ALL THE SCORES SO THAT THOSE ON TOP ARE LEVELLED OUT AGAIN
+        agents.stream().forEach((a) -> {
             a.resetScore();
-            //a.clearVendettas();
-        }
+        });
+                
+        if (clearVendettas)
+            agents.stream().forEach((a) -> {
+                a.clearVendettas();
+        });
     }
     
     public void evolveByTournament()
@@ -210,23 +249,26 @@ public class PopulationModel
         
         printState();
         
-        for (Agent a : agents)
-        {
+        agents.stream().forEach((a) -> {
             a.resetScore();
-            //a.clearVendettas();
-        }
+        });
+
+        if (clearVendettas)
+            agents.stream().forEach((a) -> {
+                a.clearVendettas();
+        });
     }
     
-    private void printState()
+    private void addGraphData()
     {
         ArrayList<Agent> cooperators = new ArrayList<>();
         ArrayList<Agent> defectors = new ArrayList<>();
         ArrayList<Agent> t4tps = new ArrayList<>();
         ArrayList<Agent> alternators = new ArrayList<>();
+        ArrayList<Agent> randoms = new ArrayList<>();
         
-        for (int i = 0; i < getPopulationSize(); i++)
+        agents.stream().forEach((agent) -> 
         {
-            Agent agent = agents.get(i);
             Strategy strategy = agent.getStrategy();
             
             if (strategy == Strategy.ALWAYS_COOPERATE)  
@@ -245,7 +287,46 @@ public class PopulationModel
             {
                 alternators.add(agent);
             }
-        }
+            else if (strategy == Strategy.RANDOM)
+            {
+                randoms.add(agent);
+            }
+        });
+    }
+    
+    private void printState()
+    {
+        ArrayList<Agent> cooperators = new ArrayList<>();
+        ArrayList<Agent> defectors = new ArrayList<>();
+        ArrayList<Agent> t4tps = new ArrayList<>();
+        ArrayList<Agent> alternators = new ArrayList<>();
+        ArrayList<Agent> randoms = new ArrayList<>();
+        
+        agents.stream().forEach((agent) -> 
+        {
+            Strategy strategy = agent.getStrategy();
+            
+            if (strategy == Strategy.ALWAYS_COOPERATE)  
+            {
+                cooperators.add(agent);
+            }
+            else if (strategy == Strategy.ALWAYS_DEFECT)
+            {
+                defectors.add(agent);
+            }
+            else if (strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+            {
+                t4tps.add(agent);
+            }
+            else if (strategy == Strategy.ALTERNATE)
+            {
+                alternators.add(agent);
+            }
+            else if (strategy == Strategy.RANDOM)
+            {
+                randoms.add(agent);
+            }
+        });
         
         System.out.println("Round " + iteration + ":");
         
@@ -266,6 +347,10 @@ public class PopulationModel
         System.out.println("");
         */
         System.out.println("ALTERNATE = " + alternators.size());
+        /*for (Agent alternator : alternators) {
+            System.out.print(alternator.getScore() + " ");
+        }*/
+        System.out.println("RANDOM = " + randoms.size());
         /*for (Agent alternator : alternators) {
             System.out.print(alternator.getScore() + " ");
         }*/
@@ -358,14 +443,20 @@ public class PopulationModel
     
     public void setEvoType(String s) throws Exception
     {
-        if (s.equals("Trim"))
-            this.evoType = EvoType.TRIM;
-        else if (s.equals("Tournament"))
-            this.evoType = EvoType.TOURNAMENT;
-        else if (s.equals("Playoff"))
-            this.evoType = EvoType.PLAYOFF;
-        else
-            throw new Exception("Error setting evo type");
+        switch (s)
+        { 
+            case "Trim":
+                this.evoType = EvoType.TRIM;
+                break;
+            case "Tournament":
+                this.evoType = EvoType.TOURNAMENT;
+                break;
+            case "Playoff":
+                this.evoType = EvoType.PLAYOFF;
+                break;
+            default :
+                throw new Exception("Error setting evo type");
+        }
     }
     
     public void setClearScores(Boolean b)

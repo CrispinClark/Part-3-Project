@@ -5,6 +5,8 @@
  */
 package Model;
 
+import Control.Controller;
+
 /**
  *
  * @author Crispin
@@ -13,8 +15,21 @@ public class GameTheorySimulation {
 
     public static void main(String[] args) 
     {
-        EvolutionGame evolution = new EvolutionGame();
-        evolution.playGame();
+        Controller control = new Controller();
+        
+        PopulationModel population = new PopulationModel(control);
+        //population.randomlyFillPopulation();
+        
+        population.setPopulationSize(10000);
+        population.setNoOfGames(2000);
+        
+        population.addStrategy(Agent.Strategy.ALTERNATE);
+        population.addStrategy(Agent.Strategy.TIT_FOR_TAT_PERSONAL);
+        population.addStrategy(Agent.Strategy.ALWAYS_COOPERATE);
+        population.addStrategy(Agent.Strategy.ALWAYS_DEFECT);
+        population.addStrategy(Agent.Strategy.RANDOM);
+        
+        population.runSimulation();
     }
     
 }

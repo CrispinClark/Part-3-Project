@@ -6,6 +6,8 @@
 package Model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
 
 /**
  *
@@ -14,26 +16,78 @@ import java.util.ArrayList;
 public class Agent implements Comparable
 {    
     public enum Strategy{ALWAYS_DEFECT, ALWAYS_COOPERATE, TIT_FOR_TAT_PERSONAL,
-                            ALTERNATE};
+                            ALTERNATE, RANDOM};
     
     private boolean isCooperator;
     private int totalScore;
     private Strategy strategy;
     
     //keep a store of those who have previously defected in a game with the agent
-    private ArrayList<Agent> vendettas; 
+    private HashMap<Agent, Boolean> vendettas; 
     
     public Agent(Strategy strategy)
     {
         this.strategy = strategy;
         
-        vendettas = new ArrayList<>();
+        vendettas = new HashMap<>();
         isCooperator = false;
         totalScore = 0;
     }
     
+    public void playAgainst(Agent competitor, int reward, int temptation, 
+            int sucker, int punishment)
+    {
+        this.makeDecision(competitor);
+        //System.out.println(this.isCooperator());
+        competitor.makeDecision(this);
+        //System.out.println(competitor.isCooperator());
+        
+        if (this.isCooperator() && competitor.isCooperator())
+        {
+            this.addToTotalScore(reward);
+            competitor.addToTotalScore(reward);
+            
+            if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+                this.vendettas.put(competitor, false);
+            if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+                competitor.vendettas.put(this, false);
+        }
+        else if (this.isCooperator() && !competitor.isCooperator())
+        {
+            this.addToTotalScore(sucker);
+            competitor.addToTotalScore(temptation);
+            
+            if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+                this.vendettas.put(competitor, true);
+            if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+                competitor.vendettas.put(this, false);
+        }
+        else if (!this.isCooperator() && competitor.isCooperator())
+        {
+            this.addToTotalScore(temptation);
+            competitor.addToTotalScore(sucker);
+            
+            if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+                this.vendettas.put(competitor, false);
+            if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+                competitor.vendettas.put(this, true);
+        }
+        else
+        {
+            this.addToTotalScore(punishment);
+            competitor.addToTotalScore(punishment);
+            
+            if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+                this.vendettas.put(competitor, true);
+            if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+                competitor.vendettas.put(this, true);
+        }
+    }
+    
     public void makeDecision(Agent competitor)
     {
+        Random r = new Random();
+        
         switch (strategy)
         {
             case ALWAYS_DEFECT:
@@ -49,35 +103,28 @@ public class Agent implements Comparable
             
             case TIT_FOR_TAT_PERSONAL:
                 //System.out.println("Making decision for tit for tatter");
-                isCooperator = !vendettas.contains(competitor);
+                try
+                {
+                    isCooperator = !vendettas.get(competitor);
+                }
+                catch (Exception e)
+                {
+                    if (vendettas.containsKey(competitor))
+                    {
+                        System.err.println("Error in looking for vendettas!");
+                        e.printStackTrace();
+                    }
+                }
                 break;
                 
             case ALTERNATE:
                 isCooperator =! isCooperator;
+                break;
+                
+            case RANDOM:
+                isCooperator = r.nextBoolean();
+                break;
         }
-    }
-    
-    public void addDefector(Agent defector) throws NullPointerException
-    {
-        if (vendettas == null)
-            throw new NullPointerException("Previous defectors list does not exist");
-        
-        if (defector == null)
-            throw new NullPointerException("Trying to add a null agent");
-        
-        if (!vendettas.contains(defector))
-            vendettas.add(defector);
-    }
-    
-    public void removeDefector(Agent defector) throws NullPointerException
-    {
-        if (vendettas == null)
-            throw new NullPointerException("Previous defectors list does not exist");
-        
-        if (defector == null)
-            throw new NullPointerException("Trying to remove a null agent");
-        
-        vendettas.remove(defector);
     }
     
     public void setStrategy(Strategy newStrategy)
@@ -125,7 +172,7 @@ public class Agent implements Comparable
         return this.totalScore;
     }
     
-    public ArrayList<Agent> getVendettas()
+    public HashMap<Agent, Boolean> getVendettas()
     {
         return this.vendettas;
     }
@@ -147,4 +194,22 @@ public class Agent implements Comparable
         else return 0;
     }
     
+    public String getStrategyString() 
+    {
+        switch (strategy)
+        {
+            case ALTERNATE:
+                return "Alternate";
+            case ALWAYS_COOPERATE:
+                return "Always Cooperate";
+            case ALWAYS_DEFECT:
+                return "Always defect";
+            case RANDOM:
+                return "Random";
+            case TIT_FOR_TAT_PERSONAL:
+                return "Tit for tat personal";
+        }
+        
+        return null;
+    }
 }
