@@ -16,7 +16,7 @@ import java.util.Random;
 public class Agent implements Comparable
 {    
     public enum Strategy{ALWAYS_DEFECT, ALWAYS_COOPERATE, TIT_FOR_TAT_PERSONAL,
-                            ALTERNATE, RANDOM};
+                            ALTERNATE, RANDOM, TIT_FOR_TAT_IMPERSONAL};
     
     private boolean isCooperator;
     private int totalScore;
@@ -24,6 +24,7 @@ public class Agent implements Comparable
     
     //keep a store of those who have previously defected in a game with the agent
     private HashMap<Agent, Boolean> vendettas; 
+    private Boolean lastTimeCheated;
     
     public Agent(Strategy strategy)
     {
@@ -31,6 +32,7 @@ public class Agent implements Comparable
         
         vendettas = new HashMap<>();
         isCooperator = false;
+        lastTimeCheated = false;
         totalScore = 0;
     }
     
@@ -49,8 +51,12 @@ public class Agent implements Comparable
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
                 this.vendettas.put(competitor, false);
+            else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                this.lastTimeCheated = false;
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
                 competitor.vendettas.put(this, false);
+            else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                this.lastTimeCheated = false;
         }
         else if (this.isCooperator() && !competitor.isCooperator())
         {
@@ -59,8 +65,13 @@ public class Agent implements Comparable
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
                 this.vendettas.put(competitor, true);
+            else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                this.lastTimeCheated = true;
+            
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
                 competitor.vendettas.put(this, false);
+            else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                this.lastTimeCheated = false;
         }
         else if (!this.isCooperator() && competitor.isCooperator())
         {
@@ -69,8 +80,13 @@ public class Agent implements Comparable
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
                 this.vendettas.put(competitor, false);
+            else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                this.lastTimeCheated = false;
+            
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
                 competitor.vendettas.put(this, true);
+            else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                this.lastTimeCheated = true;
         }
         else
         {
@@ -79,8 +95,13 @@ public class Agent implements Comparable
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
                 this.vendettas.put(competitor, true);
+            else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                this.lastTimeCheated = true;
+            
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
                 competitor.vendettas.put(this, true);
+            else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                this.lastTimeCheated = true;
         }
     }
     
@@ -123,6 +144,10 @@ public class Agent implements Comparable
                 
             case RANDOM:
                 isCooperator = r.nextBoolean();
+                break;
+                
+            case TIT_FOR_TAT_IMPERSONAL:
+                isCooperator = !lastTimeCheated;
                 break;
         }
     }
@@ -182,6 +207,20 @@ public class Agent implements Comparable
         vendettas.clear();
     }
     
+    /**
+     * @return the lastTimeCheated
+     */
+    public Boolean getLastTimeCheated() {
+        return lastTimeCheated;
+    }
+
+    /**
+     * @param lastTimeCheated the lastTimeCheated to set
+     */
+    public void setLastTimeCheated(Boolean lastTimeCheated) {
+        this.lastTimeCheated = lastTimeCheated;
+    }
+    
     @Override
     public int compareTo(Object o) 
     {
@@ -208,6 +247,8 @@ public class Agent implements Comparable
                 return "Random";
             case TIT_FOR_TAT_PERSONAL:
                 return "Tit for tat personal";
+            case TIT_FOR_TAT_IMPERSONAL:
+                return "Tit for tat impersonal";
         }
         
         return null;

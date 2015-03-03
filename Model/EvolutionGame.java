@@ -25,6 +25,7 @@ public class EvolutionGame
         
         population.addStrategy(Agent.Strategy.ALTERNATE);
         population.addStrategy(Agent.Strategy.TIT_FOR_TAT_PERSONAL);
+        population.addStrategy(Agent.Strategy.TIT_FOR_TAT_IMPERSONAL);
         population.addStrategy(Agent.Strategy.ALWAYS_COOPERATE);
         population.addStrategy(Agent.Strategy.ALWAYS_DEFECT);
         population.addStrategy(Agent.Strategy.RANDOM);

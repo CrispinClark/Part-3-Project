@@ -28,6 +28,7 @@ public class GameTheorySimulation {
         population.addStrategy(Agent.Strategy.ALWAYS_COOPERATE);
         population.addStrategy(Agent.Strategy.ALWAYS_DEFECT);
         population.addStrategy(Agent.Strategy.RANDOM);
+        population.addStrategy(Agent.Strategy.TIT_FOR_TAT_IMPERSONAL);
         
         population.runSimulation();
     }

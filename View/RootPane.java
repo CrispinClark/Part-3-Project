@@ -43,7 +43,7 @@ public class RootPane extends BorderPane
     
     final private ScrollPane stratScroll;
     final private Label stratTitle;
-    final private CheckBox coop, def, t4tp, alt, ran;
+    final private CheckBox coop, def, t4tp, alt, ran, t4ti;
     
     final private Button runBtn;
     
@@ -74,6 +74,8 @@ public class RootPane extends BorderPane
         def.setSelected(true);
         t4tp = new CheckBox("Tit for Tat (Personal)");
         t4tp.setSelected(true);
+        t4ti = new CheckBox("Tit for Tat (Impersonal)");
+        t4ti.setSelected(true);
         alt = new CheckBox("Alternate");
         alt.setSelected(true);
         ran = new CheckBox("Random");
@@ -159,7 +161,7 @@ public class RootPane extends BorderPane
         
         stratTitle.setAlignment(Pos.CENTER);
         stratTitle.setMinWidth(180);
-        FlowPane fp = createScrollContentPane();
+        FlowPane fp = createStrategyContentPane();
         fp.setMaxWidth(Double.MAX_VALUE);
         stratScroll.setContent(fp);
         stratScroll.setMinWidth(180);
@@ -183,10 +185,10 @@ public class RootPane extends BorderPane
         BorderPane.setAlignment(mainPane, Pos.CENTER);
     }
     
-    private FlowPane createScrollContentPane()
+    private FlowPane createStrategyContentPane()
     {
         FlowPane fp = new FlowPane(Orientation.VERTICAL);
-        fp.getChildren().addAll(alt, coop, def, t4tp, ran);
+        fp.getChildren().addAll(alt, coop, def, t4tp, t4ti, ran);
         
         return fp;
     }
@@ -303,6 +305,10 @@ public class RootPane extends BorderPane
         if (t4tp.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.TIT_FOR_TAT_PERSONAL);
+        }
+        if (t4ti.isSelected())
+        {
+            control.addStrategy(Model.Agent.Strategy.TIT_FOR_TAT_IMPERSONAL);
         }
         if (alt.isSelected())
         {

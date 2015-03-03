@@ -264,6 +264,7 @@ public class PopulationModel
         ArrayList<Agent> cooperators = new ArrayList<>();
         ArrayList<Agent> defectors = new ArrayList<>();
         ArrayList<Agent> t4tps = new ArrayList<>();
+        ArrayList<Agent> t4tis = new ArrayList<>();
         ArrayList<Agent> alternators = new ArrayList<>();
         ArrayList<Agent> randoms = new ArrayList<>();
         
@@ -290,6 +291,10 @@ public class PopulationModel
             else if (strategy == Strategy.RANDOM)
             {
                 randoms.add(agent);
+            }
+            else if (strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+            {
+                t4tis.add(agent);
             }
         });
     }
@@ -299,6 +304,7 @@ public class PopulationModel
         ArrayList<Agent> cooperators = new ArrayList<>();
         ArrayList<Agent> defectors = new ArrayList<>();
         ArrayList<Agent> t4tps = new ArrayList<>();
+        ArrayList<Agent> t4tis = new ArrayList<>();
         ArrayList<Agent> alternators = new ArrayList<>();
         ArrayList<Agent> randoms = new ArrayList<>();
         
@@ -325,6 +331,10 @@ public class PopulationModel
             else if (strategy == Strategy.RANDOM)
             {
                 randoms.add(agent);
+            }
+            else if (strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+            {
+                t4tis.add(agent);
             }
         });
         
@@ -341,6 +351,12 @@ public class PopulationModel
         }
         System.out.println("");*/
         System.out.println("TIT_FOR_TAT_PERSONAL = " + t4tps.size());
+        /*for (Agent t4tp : t4tps) {
+            System.out.print(t4tp.getScore() + " ");
+        }
+        System.out.println("");
+        */
+        System.out.println("TIT_FOR_TAT_IMPERSONAL = " + t4tis.size());
         /*for (Agent t4tp : t4tps) {
             System.out.print(t4tp.getScore() + " ");
         }
