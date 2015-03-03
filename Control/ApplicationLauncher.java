@@ -1,3 +1,4 @@
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -27,7 +28,7 @@ public class ApplicationLauncher extends Application {
         control.setView(view);
         control.setModel(model);
         
-        primaryStage.setScene(new Scene(view, 500, 315));
+        primaryStage.setScene(new Scene(view, 1000, 600));
         primaryStage.show();
         
         view.fillDefaults();

@@ -6,7 +6,6 @@
 package View;
 
 import Control.Controller;
-import Model.Agent;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -14,6 +13,9 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -31,12 +33,12 @@ import javafx.scene.layout.GridPane;
 public class RootPane extends BorderPane
 {
     final private Controller control;
-    final private GridPane mainPane;
     
-    final private Label popSizeLab, evoTypeLab, gameNoLab, clearLab;
+    final private FlowPane parametersPane;
+    
+    final private Label popSizeLab, evoTypeLab, gameNoLab;
     final private TextField popSizeField, gameNoField;
     final private ComboBox<String> evoTypeCombo;
-    final private CheckBox vendettasCheck, scoreCheck;
     
     final private Label suckLab, tempLab, rewLab, punLab;
     final private TextField suckField, tempField, rewField, punField;
@@ -47,11 +49,15 @@ public class RootPane extends BorderPane
     
     final private Button runBtn;
     
+    final private LineChart<Number, Number> chart;
+    final private NumberAxis xAxis, yAxis;
+    
+    XYChart.Series series;
+    
     ObservableList<String> evoOptions = 
     FXCollections.observableArrayList(
         "Trim",
-        "Tournament",
-        "Playoff"
+        "Tournament"
     );
     
     public RootPane(Controller control)
@@ -59,13 +65,14 @@ public class RootPane extends BorderPane
         this.control = control;
         
         //INITIALISE THE COMPONENTS
-        mainPane = new GridPane();
+        parametersPane = new FlowPane();
+        parametersPane.setPrefWrapLength(Double.MAX_VALUE);
         stratScroll = new ScrollPane();
         
         popSizeLab = new Label("Population Size:"); popSizeField = new TextField();
         evoTypeLab = new Label("Evolution Type:");  evoTypeCombo = new ComboBox<>(evoOptions); evoTypeCombo.setValue(evoOptions.get(0));
         gameNoLab = new Label("Number of Games:");  gameNoField = new TextField();
-        clearLab = new Label("Clear:"); vendettasCheck = new CheckBox("Vendettas"); scoreCheck = new CheckBox("Score");
+//        clearLab = new Label("Clear:"); vendettasCheck = new CheckBox("Vendettas"); scoreCheck = new CheckBox("Score");
         
         stratTitle = new Label("SELECT STRATEGIES");
         coop = new CheckBox("Always Cooperate");
@@ -92,6 +99,14 @@ public class RootPane extends BorderPane
         rewField = new TextField();
         
         runBtn = new Button("RUN");
+        
+        xAxis = new NumberAxis();
+        xAxis.setLabel("Number of games");
+        yAxis = new NumberAxis();
+        yAxis.setLabel("Size of group");
+        
+        chart = new LineChart(xAxis, yAxis);
+        chart.setTitle("Evolution of strategies");
         
         addHandlers();
         layoutComponents();
@@ -120,79 +135,79 @@ public class RootPane extends BorderPane
     
     private void layoutComponents()
     {
-        mainPane.setPadding(new Insets(10));
-        mainPane.setHgap(10);
-        mainPane.setVgap(10);
+        parametersPane.setPadding(new Insets(10));
+        parametersPane.setHgap(10);
+        parametersPane.setVgap(10);
         
         popSizeLab.setMinWidth(100);
         popSizeLab.setPadding(new Insets(0, 2, 0, 0));
         popSizeLab.setAlignment(Pos.CENTER_RIGHT);
-//        popSizeField.setMinWidth(150);
+        FlowPane popSizePane = new FlowPane();
+        popSizePane.getChildren().addAll(popSizeLab, popSizeField);
         
         gameNoLab.setMinWidth(100);
         gameNoLab.setPadding(new Insets(0, 2, 0, 0));
         gameNoLab.setAlignment(Pos.CENTER_RIGHT);
-  //      gameNoField.setMinWidth(150);
+        FlowPane gameNoPane = new FlowPane();
+        gameNoPane.getChildren().addAll(gameNoLab, gameNoField);
         
         evoTypeLab.setMinWidth(100);
         evoTypeLab.setPadding(new Insets(0, 2, 0, 0));
         evoTypeLab.setAlignment(Pos.CENTER_RIGHT);
-    //    evoTypeCombo.setMinWidth(150);
-        
-        clearLab.setMinWidth(100);
-        clearLab.setPadding(new Insets(0, 2, 0, 0));
-        clearLab.setAlignment(Pos.CENTER_RIGHT);
+        FlowPane evoTypePane = new FlowPane();
+        evoTypePane.getChildren().addAll(evoTypeLab, evoTypeCombo);
         
         suckLab.setMinWidth(100);
         suckLab.setPadding(new Insets(0, 2, 0, 0));
         suckLab.setAlignment(Pos.CENTER_RIGHT);
+        FlowPane suckPane = new FlowPane();
+        suckPane.getChildren().addAll(suckLab, suckField);
         
         tempLab.setMinWidth(100);
         tempLab.setPadding(new Insets(0, 2, 0, 0));
         tempLab.setAlignment(Pos.CENTER_RIGHT);
+        FlowPane tempPane = new FlowPane();
+        tempPane.getChildren().addAll(tempLab, tempField);
         
         rewLab.setMinWidth(100);
         rewLab.setPadding(new Insets(0, 2, 0, 0));
         rewLab.setAlignment(Pos.CENTER_RIGHT);
+        FlowPane rewPane = new FlowPane();
+        rewPane.getChildren().addAll(rewLab, rewField);
         
         punLab.setMinWidth(100);
         punLab.setPadding(new Insets(0, 2, 0, 0));
         punLab.setAlignment(Pos.CENTER_RIGHT);
+        FlowPane punPane = new FlowPane();
+        punPane.getChildren().addAll(punLab, punField);
         
-        stratTitle.setAlignment(Pos.CENTER);
-        stratTitle.setMinWidth(180);
-        FlowPane fp = createStrategyContentPane();
-        fp.setMaxWidth(Double.MAX_VALUE);
-        stratScroll.setContent(fp);
-        stratScroll.setMinWidth(180);
-        stratScroll.setMaxWidth(Double.MAX_VALUE);
-        stratScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        FlowPane scorePane = new FlowPane();
+        scorePane.getChildren().addAll(suckPane, rewPane, punPane, tempPane);
         
-        runBtn.setMaxWidth(Double.MAX_VALUE);
+        FlowPane strategiesPane = new FlowPane();
+        strategiesPane.getChildren().addAll(alt, coop, def, ran, t4ti, t4tp);
         
-        mainPane.add(popSizeLab, 0, 0, 4, 1);   mainPane.add(getPopSizeField(), 4, 0, 4, 1); mainPane.add(stratTitle, 12, 0, 6, 1);
-        mainPane.add(gameNoLab, 0, 1, 4, 1);    mainPane.add(getGameNoField(), 4, 1, 4, 1);  mainPane.add(stratScroll, 12, 1, 6, 6);
-        mainPane.add(evoTypeLab, 0, 2, 4, 1);   mainPane.add(evoTypeCombo, 4, 2, 4, 1);
-        mainPane.add(clearLab, 0, 3, 2, 1); mainPane.add(vendettasCheck, 2, 3, 3, 1);   mainPane.add(scoreCheck, 5, 3, 3, 1);
-        mainPane.add(suckLab, 0, 4, 4, 1);  mainPane.add(suckField, 4, 4, 4, 1);
-        mainPane.add(rewLab, 0, 5, 4, 1);  mainPane.add(rewField, 4, 5, 4, 1);
-        mainPane.add(punLab, 0, 6, 4, 1);  mainPane.add(punField, 4, 6, 4, 1);
-        mainPane.add(tempLab, 0, 7, 4, 1);  mainPane.add(tempField, 4, 7, 4, 1);
-        mainPane.add(runBtn, 12, 7, 6, 1);
+        parametersPane.getChildren().addAll(popSizePane,
+                                            gameNoPane,
+                                            evoTypePane, 
+                                            scorePane,
+                                            strategiesPane);
         
-        this.setCenter(mainPane);
+        /*parametersPane.add(gameNoLab, 0, 1, 4, 1);    parametersPane.add(getGameNoField(), 4, 1, 4, 1);  
+        parametersPane.add(evoTypeLab, 0, 2, 4, 1);   parametersPane.add(evoTypeCombo, 4, 2, 4, 1);
+        parametersPane.add(suckLab, 0, 4, 4, 1);  parametersPane.add(suckField, 4, 4, 4, 1);
+        parametersPane.add(rewLab, 0, 5, 4, 1);  parametersPane.add(rewField, 4, 5, 4, 1);
+        parametersPane.add(punLab, 0, 6, 4, 1);  parametersPane.add(punField, 4, 6, 4, 1);
+        parametersPane.add(tempLab, 0, 7, 4, 1);  parametersPane.add(tempField, 4, 7, 4, 1);
+        */
+        this.setTop(parametersPane);
+        this.setCenter(chart);
+        this.setBottom(runBtn);
         
-        BorderPane.setAlignment(mainPane, Pos.CENTER);
+        BorderPane.setAlignment(parametersPane, Pos.CENTER);
+        BorderPane.setAlignment(runBtn, Pos.CENTER);
     }
     
-    private FlowPane createStrategyContentPane()
-    {
-        FlowPane fp = new FlowPane(Orientation.VERTICAL);
-        fp.getChildren().addAll(alt, coop, def, t4tp, t4ti, ran);
-        
-        return fp;
-    }
-
     public void fillDefaults()
     {
         popSizeField.setText(String.valueOf(control.getPopulationSize()));
@@ -280,9 +295,9 @@ public class RootPane extends BorderPane
                 break;
         }
         
-        control.setClearScores(scoreCheck.isSelected());
+/*        control.setClearScores(scoreCheck.isSelected());
         control.setClearVendettas(vendettasCheck.isSelected());
-        
+*/        
         if (error)
         {
             runBtn.setDisable(false);
@@ -332,5 +347,10 @@ public class RootPane extends BorderPane
      */
     public TextField getGameNoField() {
         return gameNoField;
+    }
+    
+    public XYChart getChart()
+    {
+        return chart;
     }
 }

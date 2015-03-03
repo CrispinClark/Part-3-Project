@@ -8,6 +8,9 @@ package Control;
 import Model.Agent.Strategy;
 import Model.PopulationModel;
 import View.RootPane;
+import java.util.ArrayList;
+import java.util.HashMap;
+import javafx.scene.chart.XYChart;
 
 /**
  *
@@ -125,7 +128,7 @@ public class Controller
         }
     }
     
-    public void setClearVendettas(Boolean b)
+/*    public void setClearVendettas(Boolean b)
     {
         model.setClearVendettas(b);
     }
@@ -134,7 +137,7 @@ public class Controller
     {
         model.setClearScores(b);
     }
-    
+  */  
     public void clearStrategies()
     {
         model.clearStrategies();
@@ -143,5 +146,28 @@ public class Controller
     public void addStrategy(Strategy strategy)
     {
         model.addStrategy(strategy);
+    }
+
+    public void setGraphData(HashMap<Strategy, ArrayList<Integer>> strategyLevels) 
+    {
+        view.getChart().getData().clear();
+
+        ArrayList<XYChart.Series> seriesList = new ArrayList<>();
+        
+        for (Strategy s : strategyLevels.keySet())
+        {
+            XYChart.Series series = new XYChart.Series();
+            series.setName(s.name());
+            
+            ArrayList<Integer> values = strategyLevels.get(s);
+            for (int i = 0; i < values.size(); i++)
+            {
+                series.getData().add(new XYChart.Data(i*model.getNoOfGames(), values.get(i)));
+            }
+            
+            seriesList.add(series);
+        }
+        
+        view.getChart().getData().addAll(seriesList);
     }
 }

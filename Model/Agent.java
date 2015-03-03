@@ -23,14 +23,14 @@ public class Agent implements Comparable
     private Strategy strategy;
     
     //keep a store of those who have previously defected in a game with the agent
-    private HashMap<Agent, Boolean> vendettas; 
+    private ArrayList<Agent> vendettas; 
     private Boolean lastTimeCheated;
     
     public Agent(Strategy strategy)
     {
         this.strategy = strategy;
         
-        vendettas = new HashMap<>();
+        vendettas = new ArrayList<>();
         isCooperator = false;
         lastTimeCheated = false;
         totalScore = 0;
@@ -39,10 +39,12 @@ public class Agent implements Comparable
     public void playAgainst(Agent competitor, int reward, int temptation, 
             int sucker, int punishment)
     {
+        //System.out.println(getStrategyString() + " vs " + competitor.getStrategyString());
+        
         this.makeDecision(competitor);
-        //System.out.println(this.isCooperator());
         competitor.makeDecision(this);
-        //System.out.println(competitor.isCooperator());
+        
+        //System.out.println(this.isCooperator() + " " + competitor.isCooperator);
         
         if (this.isCooperator() && competitor.isCooperator())
         {
@@ -50,11 +52,15 @@ public class Agent implements Comparable
             competitor.addToTotalScore(reward);
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-                this.vendettas.put(competitor, false);
+            {
+                this.vendettas.remove(competitor);
+            }
             else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = false;
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-                competitor.vendettas.put(this, false);
+            {
+                competitor.vendettas.remove(this);
+            }
             else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = false;
         }
@@ -64,12 +70,20 @@ public class Agent implements Comparable
             competitor.addToTotalScore(temptation);
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-                this.vendettas.put(competitor, true);
+            {
+                if (!this.vendettas.contains(competitor))
+                {
+                    //System.out.println("Tit for tatter added a " + competitor.getStrategyString());
+                    this.vendettas.add(competitor);
+                }
+            }
             else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = true;
             
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-                competitor.vendettas.put(this, false);
+            {
+                competitor.vendettas.remove(this);
+            }
             else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = false;
         }
@@ -79,12 +93,20 @@ public class Agent implements Comparable
             competitor.addToTotalScore(sucker);
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-                this.vendettas.put(competitor, false);
+            {
+                this.vendettas.remove(competitor);
+            }
             else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = false;
             
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-                competitor.vendettas.put(this, true);
+            {
+                if (!competitor.vendettas.contains(this))
+                {
+                    //System.out.println("Tit for tatter added a " + this.getStrategyString());
+                    competitor.vendettas.add(this);
+                }
+            }
             else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = true;
         }
@@ -94,12 +116,24 @@ public class Agent implements Comparable
             competitor.addToTotalScore(punishment);
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-                this.vendettas.put(competitor, true);
+            {
+                if (!this.vendettas.contains(competitor))
+                {
+                    //System.out.println("Tit for tatter added a " + competitor.getStrategyString());
+                    this.vendettas.add(competitor);
+                }
+            }
             else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = true;
             
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-                competitor.vendettas.put(this, true);
+            {
+                if (!competitor.vendettas.contains(this))
+                {
+                    //System.out.println("Tit for tatter added a " + this.getStrategyString());
+                    competitor.vendettas.add(this);
+                }
+            }
             else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = true;
         }
@@ -126,15 +160,12 @@ public class Agent implements Comparable
                 //System.out.println("Making decision for tit for tatter");
                 try
                 {
-                    isCooperator = !vendettas.get(competitor);
+                    isCooperator = !vendettas.contains(competitor);
                 }
                 catch (Exception e)
                 {
-                    if (vendettas.containsKey(competitor))
-                    {
-                        System.err.println("Error in looking for vendettas!");
-                        e.printStackTrace();
-                    }
+                    System.err.println("Error in looking for vendettas!");
+                    e.printStackTrace();
                 }
                 break;
                 
@@ -197,7 +228,7 @@ public class Agent implements Comparable
         return this.totalScore;
     }
     
-    public HashMap<Agent, Boolean> getVendettas()
+    public ArrayList<Agent> getVendettas()
     {
         return this.vendettas;
     }

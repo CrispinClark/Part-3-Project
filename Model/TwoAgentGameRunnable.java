@@ -11,9 +11,9 @@ import java.util.concurrent.CountDownLatch;
  *
  * @author Crispin
  */
-public class TwoAgentGameRunnable implements Runnable
-{
-    private final CountDownLatch startSignal;
+public class TwoAgentGameRunnable
+{}
+    /*private final CountDownLatch startSignal;
     private final CountDownLatch endSignal;
     
     private int temptation;
@@ -47,7 +47,7 @@ public class TwoAgentGameRunnable implements Runnable
     /*public void play()
     {
         
-    }*/
+    }
 
     @Override
     public void run() 
@@ -109,4 +109,4 @@ public class TwoAgentGameRunnable implements Runnable
             e.printStackTrace(System.err);
         }
     }
-}
+}*/
