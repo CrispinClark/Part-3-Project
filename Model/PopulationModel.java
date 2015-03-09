@@ -22,14 +22,14 @@ public class PopulationModel
     
     private int populationSize = 100;
     private int noOfGames = 10;
-
+    
     private int temptation = 5;
     private int reward = 3;
     private int punishment = 2;
     private int sucker = 1;
     
     final private ArrayList<Agent> agents;
-    
+
     public enum EvoType{TRIM, TOURNAMENT, PLAYOFF}
     private EvoType evoType = EvoType.TRIM;
     
@@ -41,6 +41,11 @@ public class PopulationModel
     private int graphLevel = 0;
     
     private int iteration = 0;
+    
+    private boolean somethingChanged = false;
+    private int stuckValue = 0;
+    private int stopLevel = 1000;
+    
     private long startTime;
     
     public PopulationModel(Controller control)
@@ -112,7 +117,7 @@ public class PopulationModel
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
+                    e.printStackTrace(System.err);
                 }
             }
             /*System.out.println("Time taken to play games = " 
@@ -152,6 +157,7 @@ public class PopulationModel
         
         iteration = 0;
         graphLevel = 0;
+        stuckValue = 0; 
     }
     
     //Implementation of Fisher-Yates shuffle
@@ -174,7 +180,27 @@ public class PopulationModel
      */
     private boolean testConvergence()
     {
+        if (stuckValue == stopLevel)
+            return true;
+        
         winningStrategy = agents.get(0).getStrategy();
+        
+        /*if (graphLevel >= stopLevel)
+        {
+            outerloop:
+            for (ArrayList<Integer> al : strategyLevels.values())
+            {       
+                int level = al.get(graphLevel - stopLevel);
+
+                for (int i = graphLevel - stopLevel; i < graphLevel; i++)
+                {
+                    if (al.get(i) != level)
+                        break outerloop;
+                }
+
+                return true;
+            }
+        }*/
         
         for (int i = 1; i < agents.size(); i++)
         {
@@ -187,29 +213,54 @@ public class PopulationModel
     
     public void evolveByTrim()
     {
-        Collections.sort(agents);
+        somethingChanged = false;
         
+        Collections.sort(agents);
+
         int trimSize = getPopulationSize()/10;
         
         for (int i = 0; i < trimSize; i++)
         {
             Agent removal = agents.get(i);
+            Agent replacement = agents.get(populationSize - 1 - i);
+            
+            if (removal.getStrategy() != replacement.getStrategy())
+            {
+                somethingChanged = true;
+            }
             
             agents.stream().forEach((a) -> 
             {
                 a.getVendettas().remove(removal);
             });
+
+            Agent newAgent = new Agent(replacement.getStrategy());
+            newAgent.setVendettas(replacement.getVendettas());
+            agents.set(i, newAgent);
             
-            agents.set(i, new Agent(agents.get(getPopulationSize() - 1 - i).getStrategy()));
+            agents.stream().forEach((a) ->
+            {
+                if (a.getVendettas().contains(replacement))
+                {
+                    a.getVendettas().add(newAgent);
+                }
+            });
         }
         
         agents.stream().forEach((a) -> {
                 a.resetScore();
         });
+        
+        if (somethingChanged)
+            stuckValue = 0;
+        else
+            stuckValue ++;
     }
     
     public void evolveByTournament()
     {
+        somethingChanged = false;
+        
         shufflePopulation();
         
         for (int i = 0; i < agents.size()/2; i++)
@@ -217,28 +268,59 @@ public class PopulationModel
             Agent agent1 = agents.get(2*i);
             Agent agent2 = agents.get((2*i) + 1);
                 
-            System.out.println("Agent 1, strategy: " + agent1.getStrategyString() + ", score: " + agent1.getScore());
-            System.out.println("Agent 2, strategy: " + agent2.getStrategyString() + ", score: " + agent2.getScore());
-            
             if (agent1.getScore() > agent2.getScore())
             {
+                if (agent1.getStrategy() != agent2.getStrategy())
+                {
+                    somethingChanged = true;
+                }
+
                 agents.stream().forEach((a) -> 
                 {
                     a.getVendettas().remove(agent2);
                 });
 
-                agents.set(2*i+1, new Agent(agent1.getStrategy()));
+                Agent newAgent = new Agent(agent1.getStrategy());
+                newAgent.setVendettas(agent1.getVendettas());
+                agents.set(i, newAgent);
                 
+                agents.stream().forEach((a) ->
+                {
+                    if (a.getVendettas().contains(agent1))
+                    {
+                        a.getVendettas().add(newAgent);
+                    }
+                });
             }
             else if (agent2.getScore() > agent1.getScore())
             {
+                if (agent1.getStrategy() != agent2.getStrategy())
+                {
+                    somethingChanged = true;
+                }
+
                 agents.stream().forEach((a) -> 
                 {
                     a.getVendettas().remove(agent1);
                 });
 
-                agents.set(2*i, new Agent(agent2.getStrategy()));
+                Agent newAgent = new Agent(agent2.getStrategy());
+                newAgent.setVendettas(agent2.getVendettas());
+                agents.set(i, newAgent);
+                
+                agents.stream().forEach((a) ->
+                {
+                    if (a.getVendettas().contains(agent2))
+                    {
+                        a.getVendettas().add(newAgent);
+                    }
+                });
             }
+            
+            if (somethingChanged)
+                stuckValue = 0;
+            else
+                stuckValue ++;
         }
         
         agents.stream().forEach((a) -> {
@@ -266,6 +348,7 @@ public class PopulationModel
         System.out.println("Round " + iteration + ":");
         for (Agent.Strategy s : appliedStrategies)
             System.out.println(s.name() + "= " + strategyLevels.get(s).get(graphLevel));
+        System.out.println("Stuck value = " + stuckValue);
         System.out.println("");
         
         graphLevel++;
@@ -392,6 +475,20 @@ public class PopulationModel
     public void addStrategy(Agent.Strategy strategy)
     {
         appliedStrategies.add(strategy);
+    }
+    
+    /**
+     * @return the stopLevel
+     */
+    public int getStopLevel() {
+        return stopLevel;
+    }
+
+    /**
+     * @param stopLevel the stopLevel to set
+     */
+    public void setStopLevel(int stopLevel) {
+        this.stopLevel = stopLevel;
     }
 }
 

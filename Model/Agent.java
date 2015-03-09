@@ -37,7 +37,7 @@ public class Agent implements Comparable
     }
     
     public void playAgainst(Agent competitor, int reward, int temptation, 
-            int sucker, int punishment)
+            int sucker, int punishment) throws Exception
     {
         //System.out.println(getStrategyString() + " vs " + competitor.getStrategyString());
         
@@ -114,6 +114,12 @@ public class Agent implements Comparable
         {
             this.addToTotalScore(punishment);
             competitor.addToTotalScore(punishment);
+            
+           if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL &&
+                competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+            {
+                throw new Exception("Two tit for tatters are defecting");
+            }
             
             if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
             {
@@ -226,6 +232,10 @@ public class Agent implements Comparable
     public int getScore()
     {
         return this.totalScore;
+    }
+    
+    public void setVendettas(ArrayList<Agent> vendettas) {
+        this.vendettas = vendettas;
     }
     
     public ArrayList<Agent> getVendettas()

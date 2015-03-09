@@ -22,7 +22,7 @@ public class ApplicationLauncher extends Application {
         primaryStage.setTitle("Game Theory Simulation");
         
         Controller control = new Controller();
-        RootPane view = new RootPane(control);
+        RootPane view = new RootPane(control, primaryStage);
         PopulationModel model = new PopulationModel(control);        
         
         control.setView(view);

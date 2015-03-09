@@ -6,12 +6,13 @@
 package View;
 
 import Control.Controller;
+import java.io.File;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -22,9 +23,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -33,11 +37,12 @@ import javafx.scene.layout.GridPane;
 public class RootPane extends BorderPane
 {
     final private Controller control;
+    final private Window window;
     
     final private FlowPane parametersPane;
     
-    final private Label popSizeLab, evoTypeLab, gameNoLab;
-    final private TextField popSizeField, gameNoField;
+    final private Label popSizeLab, evoTypeLab, gameNoLab, stopLab;
+    final private TextField popSizeField, gameNoField, stopField;
     final private ComboBox<String> evoTypeCombo;
     
     final private Label suckLab, tempLab, rewLab, punLab;
@@ -47,7 +52,7 @@ public class RootPane extends BorderPane
     final private Label stratTitle;
     final private CheckBox coop, def, t4tp, alt, ran, t4ti;
     
-    final private Button runBtn;
+    final private Button runBtn, saveButton;
     
     final private LineChart<Number, Number> chart;
     final private NumberAxis xAxis, yAxis;
@@ -60,9 +65,10 @@ public class RootPane extends BorderPane
         "Tournament"
     );
     
-    public RootPane(Controller control)
+    public RootPane(Controller control, Window window)
     {
         this.control = control;
+        this.window = window;
         
         //INITIALISE THE COMPONENTS
         parametersPane = new FlowPane();
@@ -72,7 +78,7 @@ public class RootPane extends BorderPane
         popSizeLab = new Label("Population Size:"); popSizeField = new TextField();
         evoTypeLab = new Label("Evolution Type:");  evoTypeCombo = new ComboBox<>(evoOptions); evoTypeCombo.setValue(evoOptions.get(0));
         gameNoLab = new Label("Number of Games:");  gameNoField = new TextField();
-//        clearLab = new Label("Clear:"); vendettasCheck = new CheckBox("Vendettas"); scoreCheck = new CheckBox("Score");
+        stopLab = new Label("Stop if stuck after");    stopField = new TextField();
         
         stratTitle = new Label("SELECT STRATEGIES");
         coop = new CheckBox("Always Cooperate");
@@ -99,9 +105,11 @@ public class RootPane extends BorderPane
         rewField = new TextField();
         
         runBtn = new Button("RUN");
+        saveButton = new Button("Export");
+        saveButton.setDisable(true);
         
         xAxis = new NumberAxis();
-        xAxis.setLabel("Number of games");
+        xAxis.setLabel("Number of evolutions");
         yAxis = new NumberAxis();
         yAxis.setLabel("Size of group");
         
@@ -124,10 +132,40 @@ public class RootPane extends BorderPane
                     setAvailableStrategies();
                     control.runSimulation();
                     runBtn.setDisable(false);
+                    saveButton.setDisable(false);
                 }
                 catch(Exception e)
                 {
                     System.err.println(e.getMessage());
+                }
+            }
+        });
+        
+        saveButton.setOnAction(new EventHandler<ActionEvent>()
+        {
+            @Override
+            public void handle(ActionEvent event)
+            {
+                try
+                {
+                    FileChooser fc = new FileChooser();
+                    fc.setTitle("Save graph as image");
+                    fc.getExtensionFilters().addAll(
+                        new FileChooser.ExtensionFilter("PNG", "*.png")
+                    );
+                    fc.setInitialDirectory(new File("C:/Users/Crispin/Documents/3200 - Individual Project"));
+                    
+                    File file = fc.showSaveDialog(window);
+                    
+                    if (file != null)
+                    {
+                        WritableImage graphImage = chart.snapshot(null, null);
+                        ImageIO.write(SwingFXUtils.fromFXImage(graphImage, null), "png", file);
+                    }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
                 }
             }
         });
@@ -157,6 +195,12 @@ public class RootPane extends BorderPane
         FlowPane evoTypePane = new FlowPane();
         evoTypePane.getChildren().addAll(evoTypeLab, evoTypeCombo);
         
+        stopLab.setMinWidth(100);
+        stopLab.setPadding(new Insets(0, 2, 0, 0));
+        stopLab.setAlignment(Pos.CENTER_RIGHT);
+        FlowPane stopPane = new FlowPane();
+        stopPane.getChildren().addAll(stopLab, stopField);
+        
         suckLab.setMinWidth(100);
         suckLab.setPadding(new Insets(0, 2, 0, 0));
         suckLab.setAlignment(Pos.CENTER_RIGHT);
@@ -185,33 +229,36 @@ public class RootPane extends BorderPane
         scorePane.getChildren().addAll(suckPane, rewPane, punPane, tempPane);
         
         FlowPane strategiesPane = new FlowPane();
+        strategiesPane.setHgap(5);
+        strategiesPane.setVgap(5);
         strategiesPane.getChildren().addAll(alt, coop, def, ran, t4ti, t4tp);
         
         parametersPane.getChildren().addAll(popSizePane,
                                             gameNoPane,
-                                            evoTypePane, 
+                                            evoTypePane,
+                                            stopPane,
                                             scorePane,
                                             strategiesPane);
         
-        /*parametersPane.add(gameNoLab, 0, 1, 4, 1);    parametersPane.add(getGameNoField(), 4, 1, 4, 1);  
-        parametersPane.add(evoTypeLab, 0, 2, 4, 1);   parametersPane.add(evoTypeCombo, 4, 2, 4, 1);
-        parametersPane.add(suckLab, 0, 4, 4, 1);  parametersPane.add(suckField, 4, 4, 4, 1);
-        parametersPane.add(rewLab, 0, 5, 4, 1);  parametersPane.add(rewField, 4, 5, 4, 1);
-        parametersPane.add(punLab, 0, 6, 4, 1);  parametersPane.add(punField, 4, 6, 4, 1);
-        parametersPane.add(tempLab, 0, 7, 4, 1);  parametersPane.add(tempField, 4, 7, 4, 1);
-        */
+        FlowPane btnPanel = new FlowPane();
+        btnPanel.getChildren().addAll(runBtn, saveButton);
+        btnPanel.setPadding(new Insets(5));
+        btnPanel.setHgap(5);
+        
         this.setTop(parametersPane);
         this.setCenter(chart);
-        this.setBottom(runBtn);
+        this.setBottom(btnPanel);
+        btnPanel.setAlignment(Pos.CENTER);
         
         BorderPane.setAlignment(parametersPane, Pos.CENTER);
-        BorderPane.setAlignment(runBtn, Pos.CENTER);
+        BorderPane.setAlignment(btnPanel, Pos.CENTER);
     }
     
     public void fillDefaults()
     {
         popSizeField.setText(String.valueOf(control.getPopulationSize()));
         gameNoField.setText(String.valueOf(control.getNoOfGames()));
+        stopField.setText(String.valueOf(control.getStopLevel()));
         
         suckField.setText(String.valueOf(control.getSucker()));
         rewField.setText(String.valueOf(control.getReward()));
@@ -240,6 +287,16 @@ public class RootPane extends BorderPane
         catch (Exception e)
         {
             gameNoField.setText("1 or more");
+            error = true;
+        }
+        
+        try
+        {
+            control.setStopLevel(Integer.parseInt(stopField.getText()));
+        }
+        catch (Exception e)
+        {
+            stopField.setText("1 or more");
             error = true;
         }
         

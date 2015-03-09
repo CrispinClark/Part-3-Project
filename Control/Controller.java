@@ -64,6 +64,18 @@ public class Controller
         return model.getNoOfGames();
     }
     
+    public void setStopLevel(int stopLevel) throws Exception
+    {
+        if (stopLevel < 1)
+            throw new Exception("Stop level must be greater than 0");
+        model.setStopLevel(stopLevel);
+    }
+    
+    public int getStopLevel()
+    {
+        return model.getStopLevel();
+    }
+    
     public void setTemptation(int i) throws Exception
     {
         if (i < 0)
@@ -151,7 +163,13 @@ public class Controller
     public void setGraphData(HashMap<Strategy, ArrayList<Integer>> strategyLevels) 
     {
         view.getChart().getData().clear();
-
+        view.getChart().setTitle("Population Size: " + model.getPopulationSize()
+                + "; No of Games: " + model.getNoOfGames()
+                + "; P = " + model.getPunishment()
+                + "; R = " + model.getReward()
+                + "; S = " + model.getSucker()
+                + "; T = " + model.getTemptation());
+        
         ArrayList<XYChart.Series> seriesList = new ArrayList<>();
         
         for (Strategy s : strategyLevels.keySet())
@@ -162,7 +180,7 @@ public class Controller
             ArrayList<Integer> values = strategyLevels.get(s);
             for (int i = 0; i < values.size(); i++)
             {
-                series.getData().add(new XYChart.Data(i*model.getNoOfGames(), values.get(i)));
+                series.getData().add(new XYChart.Data(i, values.get(i)));
             }
             
             seriesList.add(series);
