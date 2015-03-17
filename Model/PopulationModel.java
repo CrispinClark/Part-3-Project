@@ -316,12 +316,12 @@ public class PopulationModel
                     }
                 });
             }
-            
-            if (somethingChanged)
+        }
+        
+        if (somethingChanged)
                 stuckValue = 0;
             else
                 stuckValue ++;
-        }
         
         agents.stream().forEach((a) -> {
                 a.resetScore();
