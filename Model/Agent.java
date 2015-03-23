@@ -16,15 +16,17 @@ import java.util.Random;
 public class Agent implements Comparable
 {    
     public enum Strategy{ALWAYS_DEFECT, ALWAYS_COOPERATE, TIT_FOR_TAT_PERSONAL,
-                            ALTERNATE, RANDOM, TIT_FOR_TAT_IMPERSONAL};
+                            ALTERNATE, RANDOM, TIT_FOR_TAT_IMPERSONAL, 
+                            UNFORGIVING_IMPERSONAL, UNFORGIVING_PERSONAL};
     
     private boolean isCooperator;
     private int totalScore;
     private Strategy strategy;
     
     //keep a store of those who have previously defected in a game with the agent
-    private ArrayList<Agent> vendettas; 
-    private Boolean lastTimeCheated;
+    protected ArrayList<Agent> vendettas; 
+    protected Boolean lastTimeCheated;
+    protected Boolean unforgivingWasCheated = false;
     
     public Agent(Strategy strategy)
     {
@@ -79,6 +81,15 @@ public class Agent implements Comparable
             }
             else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = true;
+            else if (this.strategy == Strategy.UNFORGIVING_IMPERSONAL)
+                this.unforgivingWasCheated = true;
+            else if (this.strategy == Strategy.UNFORGIVING_PERSONAL)
+            {
+                if (!this.vendettas.contains(competitor))
+                {
+                    this.vendettas.add(competitor);
+                }
+            }
             
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
             {
@@ -108,7 +119,16 @@ public class Agent implements Comparable
                 }
             }
             else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
-                this.lastTimeCheated = true;
+                competitor.lastTimeCheated = true;
+            else if (competitor.strategy == Strategy.UNFORGIVING_IMPERSONAL)
+                competitor.unforgivingWasCheated = true;
+            else if (competitor.strategy == Strategy.UNFORGIVING_PERSONAL)
+            {
+                if (!competitor.vendettas.contains(this))
+                {
+                    competitor.vendettas.add(this);
+                }
+            }
         }
         else
         {
@@ -185,6 +205,22 @@ public class Agent implements Comparable
                 
             case TIT_FOR_TAT_IMPERSONAL:
                 isCooperator = !lastTimeCheated;
+                break;
+                
+            case UNFORGIVING_IMPERSONAL:
+                isCooperator = !unforgivingWasCheated;
+                
+            case UNFORGIVING_PERSONAL:
+                //System.out.println("Making decision for tit for tatter");
+                try
+                {
+                    isCooperator = !vendettas.contains(competitor);
+                }
+                catch (Exception e)
+                {
+                    System.err.println("Error in looking for vendettas!");
+                    e.printStackTrace();
+                }
                 break;
         }
     }

@@ -50,7 +50,7 @@ public class RootPane extends BorderPane
     
     final private ScrollPane stratScroll;
     final private Label stratTitle;
-    final private CheckBox coop, def, t4tp, alt, ran, t4ti;
+    final private CheckBox coop, def, t4tp, alt, ran, t4ti, unf_i, unf_p;
     
     final private Button runBtn, saveButton;
     
@@ -93,6 +93,10 @@ public class RootPane extends BorderPane
         alt.setSelected(true);
         ran = new CheckBox("Random");
         ran.setSelected(true);
+        unf_i = new CheckBox("Unforgiving (Impersonal)");
+        unf_i.setSelected(true);
+        unf_p = new CheckBox("Unforgiving (Personal)");
+        unf_p.setSelected(true);
         
         suckLab = new Label("Sucker:");
         tempLab = new Label("Temptation:");
@@ -130,6 +134,16 @@ public class RootPane extends BorderPane
                     runBtn.setDisable(true);
                     setNewVariables();
                     setAvailableStrategies();
+                }
+                catch (Exception e)
+                {
+                    System.err.println(e.getMessage());
+                    runBtn.setDisable(false);
+                    return;
+                }
+                
+                try
+                {
                     control.runSimulation();
                     runBtn.setDisable(false);
                     saveButton.setDisable(false);
@@ -231,7 +245,8 @@ public class RootPane extends BorderPane
         FlowPane strategiesPane = new FlowPane();
         strategiesPane.setHgap(5);
         strategiesPane.setVgap(5);
-        strategiesPane.getChildren().addAll(alt, coop, def, ran, t4ti, t4tp);
+        strategiesPane.getChildren().addAll(alt, coop, def, ran, t4ti, t4tp, 
+                unf_i, unf_p);
         
         parametersPane.getChildren().addAll(popSizePane,
                                             gameNoPane,
@@ -363,32 +378,55 @@ public class RootPane extends BorderPane
         
     }
     
-    public void setAvailableStrategies()
+    public void setAvailableStrategies() throws Exception
     {
+        boolean somethingSelected = false;
+        
         control.clearStrategies();
         if (coop.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.ALWAYS_COOPERATE);
+            somethingSelected = true;
         }
         if (def.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.ALWAYS_DEFECT);
+            somethingSelected = true;
         }
         if (t4tp.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.TIT_FOR_TAT_PERSONAL);
+            somethingSelected = true;
         }
         if (t4ti.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.TIT_FOR_TAT_IMPERSONAL);
+            somethingSelected = true;
         }
         if (alt.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.ALTERNATE);
+            somethingSelected = true;
         }
         if (ran.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.RANDOM);
+            somethingSelected = true;
+        }
+        if (unf_i.isSelected())
+        {
+            control.addStrategy(Model.Agent.Strategy.UNFORGIVING_IMPERSONAL);
+            somethingSelected = true;
+        }
+        if (unf_p.isSelected())
+        {
+            control.addStrategy(Model.Agent.Strategy.UNFORGIVING_PERSONAL);
+            somethingSelected = true;
+        }
+        
+        if (!somethingSelected)
+        {
+            throw new Exception("No strategies selected!");
         }
     }
     

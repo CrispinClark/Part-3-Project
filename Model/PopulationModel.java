@@ -224,32 +224,44 @@ public class PopulationModel
             Agent removal = agents.get(i);
             Agent replacement = agents.get(populationSize - 1 - i);
             
-            if (removal.getStrategy() != replacement.getStrategy())
-            {
-                somethingChanged = true;
-            }
-            
-            agents.stream().forEach((a) -> 
-            {
-                a.getVendettas().remove(removal);
-            });
-
-            Agent newAgent = new Agent(replacement.getStrategy());
-            newAgent.setVendettas(replacement.getVendettas());
-            agents.set(i, newAgent);
-            
-            agents.stream().forEach((a) ->
-            {
-                if (a.getVendettas().contains(replacement))
+            if (removal.getScore() != replacement.getScore())
+            {    
+                if (removal.getStrategy() != replacement.getStrategy())
                 {
-                    a.getVendettas().add(newAgent);
+                    somethingChanged = true;
                 }
+
+                agents.stream().forEach((a) -> 
+                {
+                    a.getVendettas().remove(removal);
+                });
+
+                /*
+                *   Create a new agent, with the same strategy and vendettas as
+                *   the successful agent
+                */
+                Agent newAgent = new Agent(replacement.getStrategy());
+                newAgent.setVendettas(replacement.getVendettas());
+                newAgent.unforgivingWasCheated = replacement.unforgivingWasCheated;
+                agents.set(i, newAgent);
+
+                /*
+                *   Add the new agent to the vendettas of all the agents in the 
+                *   population that have a vendetta against its parent
+                */
+                agents.stream().forEach((a) ->
+                {
+                    if (a.getVendettas().contains(replacement))
+                    {
+                        a.getVendettas().add(newAgent);
+                    }
+                });
+            }
+
+            agents.stream().forEach((a) -> {
+                    a.resetScore();
             });
         }
-        
-        agents.stream().forEach((a) -> {
-                a.resetScore();
-        });
         
         if (somethingChanged)
             stuckValue = 0;
@@ -282,6 +294,7 @@ public class PopulationModel
 
                 Agent newAgent = new Agent(agent1.getStrategy());
                 newAgent.setVendettas(agent1.getVendettas());
+                newAgent.unforgivingWasCheated = agent1.unforgivingWasCheated;
                 agents.set(i, newAgent);
                 
                 agents.stream().forEach((a) ->
@@ -306,6 +319,7 @@ public class PopulationModel
 
                 Agent newAgent = new Agent(agent2.getStrategy());
                 newAgent.setVendettas(agent2.getVendettas());
+                newAgent.unforgivingWasCheated = agent2.unforgivingWasCheated;
                 agents.set(i, newAgent);
                 
                 agents.stream().forEach((a) ->
@@ -316,16 +330,16 @@ public class PopulationModel
                     }
                 });
             }
-            
-            if (somethingChanged)
-                stuckValue = 0;
-            else
-                stuckValue ++;
         }
         
         agents.stream().forEach((a) -> {
                 a.resetScore();
             });
+        
+        if (somethingChanged)
+            stuckValue = 0;
+        else
+            stuckValue ++;
    }
     
     private void addGraphData()
