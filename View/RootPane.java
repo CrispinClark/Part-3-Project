@@ -119,6 +119,7 @@ public class RootPane extends BorderPane
         
         chart = new LineChart(xAxis, yAxis);
         chart.setTitle("Evolution of strategies");
+        chart.setCreateSymbols(false);
         
         addHandlers();
         layoutComponents();

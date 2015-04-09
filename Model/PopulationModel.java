@@ -25,12 +25,12 @@ public class PopulationModel
     
     private int temptation = 5;
     private int reward = 3;
-    private int punishment = 2;
-    private int sucker = 1;
+    private int punishment = 1;
+    private int sucker = 0;
     
     final private ArrayList<Agent> agents;
 
-    public enum EvoType{TRIM, TOURNAMENT, PLAYOFF}
+    public enum EvoType{TRIM, TOURNAMENT, STRATEGY_TRIM}
     private EvoType evoType = EvoType.TRIM;
     
     //private Boolean clearVendettas, clearScores = false;
@@ -45,6 +45,7 @@ public class PopulationModel
     private boolean somethingChanged = false;
     private int stuckValue = 0;
     private int stopLevel = 1000;
+    private int terminate = 10000;
     
     private long startTime;
     
@@ -88,6 +89,9 @@ public class PopulationModel
         
         addGraphData();
         
+        int noOfCooperators = 0;
+        int noOfDefectors = 0;
+        
         while (!testConvergence())
         {
             /*System.out.println("Time taken to test convergence = " 
@@ -112,14 +116,29 @@ public class PopulationModel
                 
                 try
                 {
+                    agent1.makeDecision(agent2);
+                    agent2.makeDecision(agent1);
+        
+                    if (agent1.isCooperator())
+                        noOfCooperators++;
+                    else
+                        noOfDefectors ++;
+                    
+                    if (agent2.isCooperator())
+                        noOfCooperators++;
+                    else
+                        noOfDefectors ++;
+                    
                     agent1.playAgainst(agent2, reward, temptation, sucker, 
                             punishment);
                 }
+                
                 catch (Exception e)
                 {
                     e.printStackTrace(System.err);
                 }
             }
+           
             /*System.out.println("Time taken to play games = " 
                 + (System.currentTimeMillis() - startTime)/1000);        
             startTime = System.currentTimeMillis();
@@ -128,14 +147,17 @@ public class PopulationModel
             
             if (iteration % noOfGames == 0)
             {
+                
                 switch (evoType)
                 {
                     case TOURNAMENT:
                         evolveByTournament();
                         break;
                     case TRIM:
-                        evolveByTrim();
+                        System.out.println("Need to check evolution type in runSimulation is correct");
+                        evolveStrategyTrim();
                         break;
+                        
                 }
                 /*System.out.println("Time taken to evolve = " 
                     + (System.currentTimeMillis() - startTime));        
@@ -143,6 +165,11 @@ public class PopulationModel
                 */
                 
                 addGraphData();
+                System.out.println("Avg coop = " + noOfCooperators/noOfGames);
+                System.out.println("Avg def = " + noOfDefectors/noOfGames);
+                
+                noOfCooperators = 0;
+                noOfDefectors = 0;
             }
         }
         
@@ -180,6 +207,9 @@ public class PopulationModel
      */
     private boolean testConvergence()
     {
+        if (iteration >= terminate)
+            return true;
+        
         if (stuckValue == stopLevel)
             return true;
         
@@ -340,7 +370,48 @@ public class PopulationModel
             stuckValue = 0;
         else
             stuckValue ++;
-   }
+    }
+    
+    public void evolveStrategyTrim()
+    {
+        somethingChanged = false;
+        
+        Collections.sort(agents);
+
+        int trimSize = getPopulationSize()/10;
+        
+        for (int i = 0; i < trimSize; i++)
+        {
+            Agent removal = agents.get(i);
+            Agent replacement = agents.get(populationSize - 1 - i);
+            
+            if (removal.getScore() != replacement.getScore())
+            {    
+                if (removal.getStrategy() != replacement.getStrategy())
+                {
+                    somethingChanged = true;
+                    removal.setStrategy(replacement.getStrategy());
+                    
+                    //removal.setVendettas(replacement.getVendettas());
+                }
+
+                /*
+                *   DON'T REMOVE VENDETTA EVEN THOUGH THESE AGENTS HAVE CHANGED
+                *   STRATEGY
+                */
+                
+            }
+        }
+        
+        agents.stream().forEach((a) -> {
+                    a.resetScore();
+            });
+        
+        if (somethingChanged)
+            stuckValue = 0;
+        else
+            stuckValue ++;
+    }
     
     private void addGraphData()
     {
@@ -461,9 +532,6 @@ public class PopulationModel
                 break;
             case "Tournament":
                 this.evoType = EvoType.TOURNAMENT;
-                break;
-            case "Playoff":
-                this.evoType = EvoType.PLAYOFF;
                 break;
             default :
                 throw new Exception("Error setting evo type");

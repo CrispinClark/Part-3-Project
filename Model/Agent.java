@@ -6,7 +6,6 @@
 package Model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -43,8 +42,9 @@ public class Agent implements Comparable
     {
         //System.out.println(getStrategyString() + " vs " + competitor.getStrategyString());
         
-        this.makeDecision(competitor);
-        competitor.makeDecision(this);
+        //Decision is now made in population model method
+        //this.makeDecision(competitor);
+        //competitor.makeDecision(this);
         
         //System.out.println(this.isCooperator() + " " + competitor.isCooperator);
         
@@ -59,6 +59,7 @@ public class Agent implements Comparable
             }
             else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = false;
+            
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
             {
                 competitor.vendettas.remove(this);
@@ -71,25 +72,25 @@ public class Agent implements Comparable
             this.addToTotalScore(sucker);
             competitor.addToTotalScore(temptation);
             
-            if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-            {
-                if (!this.vendettas.contains(competitor))
-                {
+            //if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+            //{
+                //if (!this.vendettas.contains(competitor))
+                //{
                     //System.out.println("Tit for tatter added a " + competitor.getStrategyString());
                     this.vendettas.add(competitor);
-                }
-            }
-            else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                //}
+            //}
+            if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = true;
             else if (this.strategy == Strategy.UNFORGIVING_IMPERSONAL)
                 this.unforgivingWasCheated = true;
-            else if (this.strategy == Strategy.UNFORGIVING_PERSONAL)
+            /*else if (this.strategy == Strategy.UNFORGIVING_PERSONAL)
             {
                 if (!this.vendettas.contains(competitor))
                 {
                     this.vendettas.add(competitor);
                 }
-            }
+            }*/
             
             if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
             {
@@ -110,57 +111,57 @@ public class Agent implements Comparable
             else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = false;
             
-            if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-            {
-                if (!competitor.vendettas.contains(this))
-                {
+            //if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+            //{
+                //if (!competitor.vendettas.contains(this))
+                //{
                     //System.out.println("Tit for tatter added a " + this.getStrategyString());
                     competitor.vendettas.add(this);
-                }
-            }
-            else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                //}
+            //}
+            if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 competitor.lastTimeCheated = true;
             else if (competitor.strategy == Strategy.UNFORGIVING_IMPERSONAL)
                 competitor.unforgivingWasCheated = true;
-            else if (competitor.strategy == Strategy.UNFORGIVING_PERSONAL)
+            /*else if (competitor.strategy == Strategy.UNFORGIVING_PERSONAL)
             {
                 if (!competitor.vendettas.contains(this))
                 {
                     competitor.vendettas.add(this);
                 }
-            }
+            }*/
         }
         else
         {
             this.addToTotalScore(punishment);
             competitor.addToTotalScore(punishment);
             
-           if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL &&
+            /*if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL &&
                 competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
             {
                 throw new Exception("Two tit for tatters are defecting");
-            }
+            }*/
             
-            if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-            {
-                if (!this.vendettas.contains(competitor))
-                {
+            //if (this.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+            //{
+                //if (!this.vendettas.contains(competitor))
+                //{
                     //System.out.println("Tit for tatter added a " + competitor.getStrategyString());
                     this.vendettas.add(competitor);
-                }
-            }
-            else if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                //}
+            //}
+            if (this.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = true;
             
-            if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
-            {
-                if (!competitor.vendettas.contains(this))
-                {
+            //if (competitor.strategy == Strategy.TIT_FOR_TAT_PERSONAL)
+            //{
+                //if (!competitor.vendettas.contains(this))
+                //{
                     //System.out.println("Tit for tatter added a " + this.getStrategyString());
                     competitor.vendettas.add(this);
-                }
-            }
-            else if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
+                //}
+            //}
+            if (competitor.strategy == Strategy.TIT_FOR_TAT_IMPERSONAL)
                 this.lastTimeCheated = true;
         }
     }
@@ -186,7 +187,17 @@ public class Agent implements Comparable
                 //System.out.println("Making decision for tit for tatter");
                 try
                 {
-                    isCooperator = !vendettas.contains(competitor);
+                    if (vendettas.contains(competitor))
+                    {
+                        if (r.nextInt(10) == 1)
+                        {
+                            isCooperator = true;
+                        }
+                        else
+                            isCooperator = false;
+                    }
+                    else
+                        isCooperator = true;
                 }
                 catch (Exception e)
                 {
