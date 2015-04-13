@@ -5,8 +5,8 @@
  */
 package Control;
 
-import Model.Agent.Strategy;
 import Model.PopulationModel;
+import Model.PopulationModel.Strategy;
 import View.RootPane;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,12 +68,26 @@ public class Controller
     {
         if (stopLevel < 1)
             throw new Exception("Stop level must be greater than 0");
-        model.setStopLevel(stopLevel);
+        else
+            model.setStopLevel(stopLevel);
     }
     
     public int getStopLevel()
     {
         return model.getStopLevel();
+    }
+    
+    public void setTerminate(int terminate) throws Exception
+    {
+        if (terminate < 1)
+            throw new Exception("Terminate must be greater than 0");
+        else
+            model.setTerminate(terminate);
+    }
+    
+    public int getTerminate()
+    {
+        return model.getTerminate();
     }
     
     public void setTemptation(int i) throws Exception
@@ -160,7 +174,7 @@ public class Controller
         model.addStrategy(strategy);
     }
 
-    public void setGraphData(HashMap<Strategy, ArrayList<Integer>> strategyLevels) 
+    public void setGraphData(HashMap<Class, ArrayList<Integer>> strategyLevels) 
     {
         view.getChart().getData().clear();
         view.getChart().setTitle("Population Size: " + model.getPopulationSize()
@@ -172,10 +186,10 @@ public class Controller
         
         ArrayList<XYChart.Series> seriesList = new ArrayList<>();
         
-        for (Strategy s : strategyLevels.keySet())
+        for (Class s : strategyLevels.keySet())
         {
             XYChart.Series series = new XYChart.Series();
-            series.setName(s.name());
+            series.setName(s.getSimpleName());
             
             ArrayList<Integer> values = strategyLevels.get(s);
             for (int i = 0; i < values.size(); i++)

@@ -5,11 +5,13 @@
  */
 package Model;
 
+import Control.Controller;
+import Model.Agents.DefectorAgent;
 import java.util.ArrayList;
 import java.util.Random;
 
 /**
- *
+ *  DEPRECATED CLASS, SEE AGENTTEMPLATE INSTEAD
  * @author Crispin
  */
 public class Agent implements Comparable

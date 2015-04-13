@@ -6,7 +6,7 @@
 package Model;
 
 import Control.Controller;
-import Model.Agent.Strategy;
+import Model.Agents.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,23 +28,26 @@ public class PopulationModel
     private int punishment = 1;
     private int sucker = 0;
     
-    final private ArrayList<Agent> agents;
+    final private ArrayList<AgentTemplate> agents;
 
+    public enum Strategy{ALWAYS_DEFECT, ALWAYS_COOPERATE, TIT_FOR_TAT_PERSONAL,
+                            ALTERNATE, RANDOM, TIT_FOR_TAT_IMPERSONAL, 
+                            UNFORGIVING_IMPERSONAL, UNFORGIVING_PERSONAL};
     public enum EvoType{TRIM, TOURNAMENT, STRATEGY_TRIM}
+    
     private EvoType evoType = EvoType.TRIM;
     
     //private Boolean clearVendettas, clearScores = false;
     
-    final private ArrayList<Agent.Strategy> appliedStrategies;
-    final private HashMap<Agent.Strategy, ArrayList<Integer>> strategyLevels;
-    private Agent.Strategy winningStrategy;
+    final private ArrayList<Strategy> appliedStrategies;
+    final private HashMap<Class, ArrayList<Integer>> strategyLevels;
     private int graphLevel = 0;
     
     private int iteration = 0;
     
     private boolean somethingChanged = false;
     private int stuckValue = 0;
-    private int stopLevel = 1000;
+    private int stopLevel = 100;
     private int terminate = 10000;
     
     private long startTime;
@@ -68,26 +71,44 @@ public class PopulationModel
         {
             int strategyNumber = rand.nextInt(noOfStrategies);
             
-            Agent agent = new Agent(appliedStrategies.get(strategyNumber));
-            
-            agents.add(agent);
-        }
-        
-        for (Agent.Strategy s : appliedStrategies)
-        {
-            strategyLevels.put(s, new ArrayList<>());
+            switch (appliedStrategies.get(strategyNumber))
+            {
+                case ALWAYS_COOPERATE:
+                    agents.add(new CooperateAgent(control));
+                    strategyLevels.put(CooperateAgent.class, new ArrayList<>());
+                    break;
+                case ALWAYS_DEFECT:
+                    agents.add(new DefectorAgent(control));
+                    strategyLevels.put(DefectorAgent.class, new ArrayList<>());
+                    break;
+                case RANDOM:
+                    agents.add(new RandomAgent(control));
+                    strategyLevels.put(RandomAgent.class, new ArrayList<>());
+                    break;
+                case TIT_FOR_TAT_PERSONAL:
+                    agents.add(new TitForTatAgent(control));
+                    strategyLevels.put(TitForTatAgent.class, new ArrayList<>());
+                    break;
+                case UNFORGIVING_PERSONAL:
+                    agents.add(new UnforgivingAgent(control));
+                    strategyLevels.put(UnforgivingAgent.class, new ArrayList<>());
+                    break;
+            }
         }
     }
     
     public void runSimulation()
     {        
         startTime = System.currentTimeMillis();
+        System.out.println("Starting simulation...");
         randomlyFillPopulation();
         System.out.println("Time taken to fill population = " 
                 + (System.currentTimeMillis() - startTime)/1000000);        
         startTime = System.currentTimeMillis();
         
+        System.out.println("Adding graph data...");
         addGraphData();
+        System.out.println("Graph data added");
         
         int noOfCooperators = 0;
         int noOfDefectors = 0;
@@ -107,46 +128,41 @@ public class PopulationModel
             startTime = System.currentTimeMillis();
             */
             
-            for (int i = 0; i < agents.size()/2; i++)
-            {
-                Agent agent1 = agents.get(2*i);
-                Agent agent2 = agents.get((2*i) + 1);
-                
-                //System.out.println(iteration + " Playing game " + i);
-                
-                try
+            for (int i = 0; i < agents.size() - 1; i++)
+                for (int j = i +1; j < agents.size(); j++)
                 {
-                    agent1.makeDecision(agent2);
-                    agent2.makeDecision(agent1);
-        
-                    if (agent1.isCooperator())
-                        noOfCooperators++;
-                    else
-                        noOfDefectors ++;
-                    
-                    if (agent2.isCooperator())
-                        noOfCooperators++;
-                    else
-                        noOfDefectors ++;
-                    
-                    agent1.playAgainst(agent2, reward, temptation, sucker, 
-                            punishment);
+                    AgentTemplate agent1 = agents.get(i);
+                    AgentTemplate agent2 = agents.get(j);
+
+                    //System.out.println(iteration + " Playing game " + i);
+
+                    try
+                    {
+                        agent1.makeDecision(agent2);
+                        agent2.makeDecision(agent1);
+
+                        if (agent1.isCooperator())
+                            noOfCooperators++;
+                        else
+                            noOfDefectors ++;
+
+                        if (agent2.isCooperator())
+                            noOfCooperators++;
+                        else
+                            noOfDefectors ++;
+
+                        agent1.playAgainst(agent2);
+                        agent2.playAgainst(agent1);
+                    }
+
+                    catch (Exception e)
+                    {
+                        e.printStackTrace(System.err);
+                    }
                 }
-                
-                catch (Exception e)
-                {
-                    e.printStackTrace(System.err);
-                }
-            }
-           
-            /*System.out.println("Time taken to play games = " 
-                + (System.currentTimeMillis() - startTime)/1000);        
-            startTime = System.currentTimeMillis();
-            */
-            //printState();
-            
-            if (iteration % noOfGames == 0)
-            {
+                       
+            //if (iteration % noOfGames == 0)
+            //{
                 
                 switch (evoType)
                 {
@@ -155,14 +171,10 @@ public class PopulationModel
                         break;
                     case TRIM:
                         System.out.println("Need to check evolution type in runSimulation is correct");
-                        evolveStrategyTrim();
+                        evolveByTrim();
                         break;
                         
                 }
-                /*System.out.println("Time taken to evolve = " 
-                    + (System.currentTimeMillis() - startTime));        
-                startTime = System.currentTimeMillis();
-                */
                 
                 addGraphData();
                 System.out.println("Avg coop = " + noOfCooperators/noOfGames);
@@ -170,7 +182,7 @@ public class PopulationModel
                 
                 noOfCooperators = 0;
                 noOfDefectors = 0;
-            }
+            //}
         }
         
         control.setGraphData(strategyLevels);
@@ -195,7 +207,7 @@ public class PopulationModel
         {
             int index = rand.nextInt(i + 1);
             // Simple swap
-            Agent a = agents.get(index);
+            AgentTemplate a = agents.get(index);
             agents.set(index, agents.get(i));
             agents.set(i, a);
         }
@@ -213,28 +225,11 @@ public class PopulationModel
         if (stuckValue == stopLevel)
             return true;
         
-        winningStrategy = agents.get(0).getStrategy();
-        
-        /*if (graphLevel >= stopLevel)
-        {
-            outerloop:
-            for (ArrayList<Integer> al : strategyLevels.values())
-            {       
-                int level = al.get(graphLevel - stopLevel);
-
-                for (int i = graphLevel - stopLevel; i < graphLevel; i++)
-                {
-                    if (al.get(i) != level)
-                        break outerloop;
-                }
-
-                return true;
-            }
-        }*/
+        Class winningClass = agents.get(0).getClass();
         
         for (int i = 1; i < agents.size(); i++)
         {
-            if (agents.get(i).getStrategy() != winningStrategy)
+            if (agents.get(i).getClass() != winningClass)
                 return false;
         }
         
@@ -251,12 +246,12 @@ public class PopulationModel
         
         for (int i = 0; i < trimSize; i++)
         {
-            Agent removal = agents.get(i);
-            Agent replacement = agents.get(populationSize - 1 - i);
+            AgentTemplate removal = agents.get(i);
+            AgentTemplate replacement = agents.get(populationSize - 1 - i);
             
             if (removal.getScore() != replacement.getScore())
             {    
-                if (removal.getStrategy() != replacement.getStrategy())
+                if (removal.getClass() != replacement.getClass())
                 {
                     somethingChanged = true;
                 }
@@ -270,10 +265,9 @@ public class PopulationModel
                 *   Create a new agent, with the same strategy and vendettas as
                 *   the successful agent
                 */
-                Agent newAgent = new Agent(replacement.getStrategy());
-                newAgent.setVendettas(replacement.getVendettas());
-                newAgent.unforgivingWasCheated = replacement.unforgivingWasCheated;
-                agents.set(i, newAgent);
+                AgentTemplate newAgent = replacement.reproduce();
+                agents.remove(removal);
+                agents.add(newAgent);
 
                 /*
                 *   Add the new agent to the vendettas of all the agents in the 
@@ -287,10 +281,11 @@ public class PopulationModel
                     }
                 });
             }
-
-            agents.stream().forEach((a) -> {
-                    a.resetScore();
-            });
+        }
+        
+        for (AgentTemplate a : agents)
+        {
+            a.resetScore();
         }
         
         if (somethingChanged)
@@ -307,12 +302,12 @@ public class PopulationModel
         
         for (int i = 0; i < agents.size()/2; i++)
         {
-            Agent agent1 = agents.get(2*i);
-            Agent agent2 = agents.get((2*i) + 1);
+            AgentTemplate agent1 = agents.get(2*i);
+            AgentTemplate agent2 = agents.get((2*i) + 1);
                 
             if (agent1.getScore() > agent2.getScore())
             {
-                if (agent1.getStrategy() != agent2.getStrategy())
+                if (agent1.getClass() != agent2.getClass())
                 {
                     somethingChanged = true;
                 }
@@ -322,10 +317,9 @@ public class PopulationModel
                     a.getVendettas().remove(agent2);
                 });
 
-                Agent newAgent = new Agent(agent1.getStrategy());
-                newAgent.setVendettas(agent1.getVendettas());
-                newAgent.unforgivingWasCheated = agent1.unforgivingWasCheated;
-                agents.set(i, newAgent);
+                AgentTemplate newAgent = agent1.reproduce();
+                agents.remove(agent2);
+                agents.add(newAgent);
                 
                 agents.stream().forEach((a) ->
                 {
@@ -337,7 +331,7 @@ public class PopulationModel
             }
             else if (agent2.getScore() > agent1.getScore())
             {
-                if (agent1.getStrategy() != agent2.getStrategy())
+                if (agent1.getClass() != agent2.getClass())
                 {
                     somethingChanged = true;
                 }
@@ -347,10 +341,9 @@ public class PopulationModel
                     a.getVendettas().remove(agent1);
                 });
 
-                Agent newAgent = new Agent(agent2.getStrategy());
-                newAgent.setVendettas(agent2.getVendettas());
-                newAgent.unforgivingWasCheated = agent2.unforgivingWasCheated;
-                agents.set(i, newAgent);
+                AgentTemplate newAgent = agent2.reproduce();
+                agents.remove(agent1);
+                agents.add(newAgent);
                 
                 agents.stream().forEach((a) ->
                 {
@@ -374,7 +367,7 @@ public class PopulationModel
     
     public void evolveStrategyTrim()
     {
-        somethingChanged = false;
+     /*   somethingChanged = false;
         
         Collections.sort(agents);
 
@@ -398,7 +391,7 @@ public class PopulationModel
                 /*
                 *   DON'T REMOVE VENDETTA EVEN THOUGH THESE AGENTS HAVE CHANGED
                 *   STRATEGY
-                */
+                
                 
             }
         }
@@ -410,7 +403,7 @@ public class PopulationModel
         if (somethingChanged)
             stuckValue = 0;
         else
-            stuckValue ++;
+            stuckValue ++;*/
     }
     
     private void addGraphData()
@@ -423,7 +416,7 @@ public class PopulationModel
         agents.stream().forEach((agent) -> 
         {
             ArrayList<Integer> stratList;
-            Strategy strategy = agent.getStrategy();
+            Class strategy = agent.getClass();
             stratList = strategyLevels.get(strategy);
             
             int x = stratList.get(graphLevel); 
@@ -431,8 +424,8 @@ public class PopulationModel
         });
         
         System.out.println("Round " + iteration + ":");
-        for (Agent.Strategy s : appliedStrategies)
-            System.out.println(s.name() + "= " + strategyLevels.get(s).get(graphLevel));
+        for (Class c : strategyLevels.keySet())
+            System.out.println(c.getSimpleName()+ "= " + strategyLevels.get(c).get(graphLevel));
         System.out.println("Stuck value = " + stuckValue);
         System.out.println("");
         
@@ -554,7 +547,7 @@ public class PopulationModel
         strategyLevels.clear();
     }
     
-    public void addStrategy(Agent.Strategy strategy)
+    public void addStrategy(Strategy strategy)
     {
         appliedStrategies.add(strategy);
     }
@@ -572,48 +565,15 @@ public class PopulationModel
     public void setStopLevel(int stopLevel) {
         this.stopLevel = stopLevel;
     }
-}
-
-
-    /*public void evolveByPlayoff()
+    
+    public int getTerminate()
     {
-        Random r = new Random();
-        
-        int ind1 = r.nextInt(agents.size());
-        
-        int ind2;
-        do 
-        {
-            ind2 = r.nextInt(agents.size());
-        }
-        while(ind1 == ind2);
-        
-        Agent agent1 = agents.get(ind1);
-        Agent agent2 = agents.get(ind2);
-        
-        if (agent1.getScore() > agent2.getScore())
-        {
-            agents.stream().forEach((a) -> 
-            {
-                a.getVendettas().remove(agent2);
-            });
-            
-            agents.set(ind2, new Agent(agent1.getStrategy()));
-        }
-        else if (agent2.getScore() > agent1.getScore())
-        {
-            agents.stream().forEach((a) -> 
-            {
-                a.getVendettas().remove(agent1);
-            });
-            
-            agents.set(ind1, new Agent(agent2.getStrategy()));
-        }
-        
-        //RESET ALL THE SCORES SO THAT THOSE ON TOP ARE LEVELLED OUT AGAIN
-        agents.stream().forEach((a) -> {
-            a.resetScore();
-        });
-                
-    }*/
+        return this.terminate;
+    }
+    
+    public void setTerminate(int terminate)
+    {
+        this.terminate = terminate;
+    }
+}
     

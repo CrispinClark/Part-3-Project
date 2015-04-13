@@ -6,6 +6,7 @@
 package View;
 
 import Control.Controller;
+import Model.PopulationModel.Strategy;
 import java.io.File;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -41,8 +42,8 @@ public class RootPane extends BorderPane
     
     final private FlowPane parametersPane;
     
-    final private Label popSizeLab, evoTypeLab, gameNoLab, stopLab;
-    final private TextField popSizeField, gameNoField, stopField;
+    final private Label popSizeLab, evoTypeLab, gameNoLab, stopLab, termLab;
+    final private TextField popSizeField, gameNoField, stopField, termField;
     final private ComboBox<String> evoTypeCombo;
     
     final private Label suckLab, tempLab, rewLab, punLab;
@@ -50,7 +51,7 @@ public class RootPane extends BorderPane
     
     final private ScrollPane stratScroll;
     final private Label stratTitle;
-    final private CheckBox coop, def, t4tp, alt, ran, t4ti, unf_i, unf_p;
+    final private CheckBox coop, def, t4tp, ran, unf_p; /*t4ti, unf_i, alt,;*/
     
     final private Button runBtn, saveButton;
     
@@ -75,27 +76,28 @@ public class RootPane extends BorderPane
         parametersPane.setPrefWrapLength(Double.MAX_VALUE);
         stratScroll = new ScrollPane();
         
-        popSizeLab = new Label("Population Size:"); popSizeField = new TextField();
-        evoTypeLab = new Label("Evolution Type:");  evoTypeCombo = new ComboBox<>(evoOptions); evoTypeCombo.setValue(evoOptions.get(0));
-        gameNoLab = new Label("Number of Games:");  gameNoField = new TextField();
-        stopLab = new Label("Stop if stuck after");    stopField = new TextField();
+        popSizeLab = new Label("Population Size:");     popSizeField = new TextField();
+        evoTypeLab = new Label("Evolution Type:");      evoTypeCombo = new ComboBox<>(evoOptions); evoTypeCombo.setValue(evoOptions.get(0));
+        gameNoLab = new Label("Number of Games:");      gameNoField = new TextField();
+        stopLab = new Label("Stop if no change after"); stopField = new TextField();
+        termLab = new Label("Terminate after:");        termField = new TextField();
         
         stratTitle = new Label("SELECT STRATEGIES");
         coop = new CheckBox("Always Cooperate");
         coop.setSelected(true);
         def = new CheckBox("Always Defect");
         def.setSelected(true);
-        t4tp = new CheckBox("Tit for Tat (Personal)");
+        t4tp = new CheckBox("Tit for Tat");
         t4tp.setSelected(true);
-        t4ti = new CheckBox("Tit for Tat (Impersonal)");
+/*        t4ti = new CheckBox("Tit for Tat (Impersonal)");
         t4ti.setSelected(true);
         alt = new CheckBox("Alternate");
-        alt.setSelected(true);
+        alt.setSelected(true);*/
         ran = new CheckBox("Random");
         ran.setSelected(true);
-        unf_i = new CheckBox("Unforgiving (Impersonal)");
-        unf_i.setSelected(true);
-        unf_p = new CheckBox("Unforgiving (Personal)");
+/*        unf_i = new CheckBox("Unforgiving (Impersonal)");
+        unf_i.setSelected(true);*/
+        unf_p = new CheckBox("Unforgiving");
         unf_p.setSelected(true);
         
         suckLab = new Label("Sucker:");
@@ -216,6 +218,12 @@ public class RootPane extends BorderPane
         FlowPane stopPane = new FlowPane();
         stopPane.getChildren().addAll(stopLab, stopField);
         
+        termLab.setMinWidth(100);
+        termLab.setPadding(new Insets(0, 2, 0, 0));
+        termLab.setAlignment(Pos.CENTER_RIGHT);
+        FlowPane termPane = new FlowPane();
+        termPane.getChildren().addAll(termLab, termField);
+        
         suckLab.setMinWidth(100);
         suckLab.setPadding(new Insets(0, 2, 0, 0));
         suckLab.setAlignment(Pos.CENTER_RIGHT);
@@ -246,13 +254,13 @@ public class RootPane extends BorderPane
         FlowPane strategiesPane = new FlowPane();
         strategiesPane.setHgap(5);
         strategiesPane.setVgap(5);
-        strategiesPane.getChildren().addAll(alt, coop, def, ran, t4ti, t4tp, 
-                unf_i, unf_p);
+        strategiesPane.getChildren().addAll(coop, def, ran, t4tp, unf_p);
         
         parametersPane.getChildren().addAll(popSizePane,
                                             gameNoPane,
                                             evoTypePane,
                                             stopPane,
+                                            termPane,
                                             scorePane,
                                             strategiesPane);
         
@@ -275,6 +283,7 @@ public class RootPane extends BorderPane
         popSizeField.setText(String.valueOf(control.getPopulationSize()));
         gameNoField.setText(String.valueOf(control.getNoOfGames()));
         stopField.setText(String.valueOf(control.getStopLevel()));
+        termField.setText(String.valueOf(control.getTerminate()));
         
         suckField.setText(String.valueOf(control.getSucker()));
         rewField.setText(String.valueOf(control.getReward()));
@@ -313,6 +322,16 @@ public class RootPane extends BorderPane
         catch (Exception e)
         {
             stopField.setText("1 or more");
+            error = true;
+        }
+        
+        try
+        {
+            control.setTerminate(Integer.parseInt(termField.getText()));
+        }
+        catch (Exception e)
+        {
+            termField.setText("1 or more");
             error = true;
         }
         
@@ -386,20 +405,30 @@ public class RootPane extends BorderPane
         control.clearStrategies();
         if (coop.isSelected())
         {
-            control.addStrategy(Model.Agent.Strategy.ALWAYS_COOPERATE);
+            control.addStrategy(Strategy.ALWAYS_COOPERATE);
             somethingSelected = true;
         }
         if (def.isSelected())
         {
-            control.addStrategy(Model.Agent.Strategy.ALWAYS_DEFECT);
+            control.addStrategy(Strategy.ALWAYS_DEFECT);
             somethingSelected = true;
         }
         if (t4tp.isSelected())
         {
-            control.addStrategy(Model.Agent.Strategy.TIT_FOR_TAT_PERSONAL);
+            control.addStrategy(Strategy.TIT_FOR_TAT_PERSONAL);
             somethingSelected = true;
         }
-        if (t4ti.isSelected())
+        if (ran.isSelected())
+        {
+            control.addStrategy(Strategy.RANDOM);
+            somethingSelected = true;
+        }
+        if (unf_p.isSelected())
+        {
+            control.addStrategy(Strategy.UNFORGIVING_PERSONAL);
+            somethingSelected = true;
+        }
+        /*if (t4ti.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.TIT_FOR_TAT_IMPERSONAL);
             somethingSelected = true;
@@ -408,22 +437,12 @@ public class RootPane extends BorderPane
         {
             control.addStrategy(Model.Agent.Strategy.ALTERNATE);
             somethingSelected = true;
-        }
-        if (ran.isSelected())
-        {
-            control.addStrategy(Model.Agent.Strategy.RANDOM);
-            somethingSelected = true;
-        }
-        if (unf_i.isSelected())
+        }*/
+        /*if (unf_i.isSelected())
         {
             control.addStrategy(Model.Agent.Strategy.UNFORGIVING_IMPERSONAL);
             somethingSelected = true;
-        }
-        if (unf_p.isSelected())
-        {
-            control.addStrategy(Model.Agent.Strategy.UNFORGIVING_PERSONAL);
-            somethingSelected = true;
-        }
+        }*/
         
         if (!somethingSelected)
         {
