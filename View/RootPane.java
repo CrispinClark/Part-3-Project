@@ -45,12 +45,11 @@ public class RootPane extends BorderPane
     final private Label popSizeLab, evoTypeLab, gameNoLab, stopLab, termLab;
     final private TextField popSizeField, gameNoField, stopField, termField;
     final private ComboBox<String> evoTypeCombo;
+    final private CheckBox vendBox;
     
     final private Label suckLab, tempLab, rewLab, punLab;
     final private TextField suckField, tempField, rewField, punField;
     
-    final private ScrollPane stratScroll;
-    final private Label stratTitle;
     final private CheckBox coop, def, t4tp, ran, unf_p; /*t4ti, unf_i, alt,;*/
     
     final private Button runBtn, saveButton;
@@ -74,15 +73,15 @@ public class RootPane extends BorderPane
         //INITIALISE THE COMPONENTS
         parametersPane = new FlowPane();
         parametersPane.setPrefWrapLength(Double.MAX_VALUE);
-        stratScroll = new ScrollPane();
         
         popSizeLab = new Label("Population Size:");     popSizeField = new TextField();
         evoTypeLab = new Label("Evolution Type:");      evoTypeCombo = new ComboBox<>(evoOptions); evoTypeCombo.setValue(evoOptions.get(0));
         gameNoLab = new Label("Number of Games:");      gameNoField = new TextField();
         stopLab = new Label("Stop if no change after"); stopField = new TextField();
         termLab = new Label("Terminate after:");        termField = new TextField();
+        vendBox = new CheckBox("Offspring get vendettas");  
+        vendBox.setSelected(true);
         
-        stratTitle = new Label("SELECT STRATEGIES");
         coop = new CheckBox("Always Cooperate");
         coop.setSelected(true);
         def = new CheckBox("Always Defect");
@@ -261,6 +260,7 @@ public class RootPane extends BorderPane
                                             evoTypePane,
                                             stopPane,
                                             termPane,
+                                            vendBox,
                                             scorePane,
                                             strategiesPane);
         
@@ -387,9 +387,8 @@ public class RootPane extends BorderPane
                 break;
         }
         
-/*        control.setClearScores(scoreCheck.isSelected());
-        control.setClearVendettas(vendettasCheck.isSelected());
-*/        
+        control.setOffspringGetVendettas(vendBox.isSelected());
+
         if (error)
         {
             runBtn.setDisable(false);

@@ -7,6 +7,7 @@ package Model.Agents;
 
 import Control.Controller;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
@@ -18,13 +19,13 @@ public abstract class AgentTemplate implements Comparable
     
     private int totalScore;
     protected boolean isCooperator;
-    protected ArrayList<AgentTemplate> vendettas;
+    protected HashMap<AgentTemplate, Boolean> vendettas;
     
     public AgentTemplate(Controller control)
     {
         this.control = control;
         this.totalScore = 0;
-        this.vendettas = new ArrayList<>();
+        this.vendettas = new HashMap<>();
     }
     
     @Override
@@ -41,8 +42,9 @@ public abstract class AgentTemplate implements Comparable
             totalScore += control.getSucker();
         else
             totalScore += control.getPunishment();
-    }    
-    abstract public AgentTemplate reproduce();
+    }
+    
+    abstract public AgentTemplate reproduce(HashMap<AgentTemplate, Boolean> vendettas);
     
     public boolean isCooperator()
     {
@@ -64,7 +66,7 @@ public abstract class AgentTemplate implements Comparable
         totalScore = 0;
     }
     
-    public ArrayList<AgentTemplate> getVendettas()
+    public HashMap<AgentTemplate, Boolean> getVendettas()
     {
         return this.vendettas;
     }

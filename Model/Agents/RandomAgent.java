@@ -6,6 +6,8 @@
 package Model.Agents;
 
 import Control.Controller;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -29,10 +31,11 @@ public class RandomAgent extends AgentTemplate
     }
 
     @Override
-    public AgentTemplate reproduce() 
+    public AgentTemplate reproduce(HashMap<AgentTemplate, Boolean> vendettas) 
     {
         RandomAgent newAgent = new RandomAgent(control);
-   
+        newAgent.vendettas = vendettas;
+                
         return newAgent;
     }
    

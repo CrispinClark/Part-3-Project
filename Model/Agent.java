@@ -20,9 +20,10 @@ public class Agent implements Comparable
                             ALTERNATE, RANDOM, TIT_FOR_TAT_IMPERSONAL, 
                             UNFORGIVING_IMPERSONAL, UNFORGIVING_PERSONAL};
     
+    private Strategy strategy;
+    
     private boolean isCooperator;
     private int totalScore;
-    private Strategy strategy;
     
     //keep a store of those who have previously defected in a game with the agent
     protected ArrayList<Agent> vendettas; 

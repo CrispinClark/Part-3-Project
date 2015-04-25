@@ -23,6 +23,8 @@ public class PopulationModel
     private int populationSize = 100;
     private int noOfGames = 10;
     
+    private boolean offspringGetVendettas = true;
+    
     private int temptation = 5;
     private int reward = 3;
     private int punishment = 1;
@@ -47,8 +49,8 @@ public class PopulationModel
     
     private boolean somethingChanged = false;
     private int stuckValue = 0;
-    private int stopLevel = 100;
-    private int terminate = 10000;
+    private int stopLevel = 5;
+    private int terminate = 100000;
     
     private long startTime;
     
@@ -128,7 +130,7 @@ public class PopulationModel
             startTime = System.currentTimeMillis();
             */
             
-            for (int i = 0; i < agents.size() - 1; i++)
+            for (int i = 0; i < agents.size(); i++)
                 for (int j = i +1; j < agents.size(); j++)
                 {
                     AgentTemplate agent1 = agents.get(i);
@@ -161,8 +163,8 @@ public class PopulationModel
                     }
                 }
                        
-            //if (iteration % noOfGames == 0)
-            //{
+                //if (iteration % noOfGames == 0)
+                {
                 
                 switch (evoType)
                 {
@@ -170,7 +172,6 @@ public class PopulationModel
                         evolveByTournament();
                         break;
                     case TRIM:
-                        System.out.println("Need to check evolution type in runSimulation is correct");
                         evolveByTrim();
                         break;
                         
@@ -182,7 +183,7 @@ public class PopulationModel
                 
                 noOfCooperators = 0;
                 noOfDefectors = 0;
-            //}
+            }
         }
         
         control.setGraphData(strategyLevels);
@@ -256,16 +257,15 @@ public class PopulationModel
                     somethingChanged = true;
                 }
 
-                agents.stream().forEach((a) -> 
-                {
-                    a.getVendettas().remove(removal);
-                });
-
                 /*
                 *   Create a new agent, with the same strategy and vendettas as
                 *   the successful agent
                 */
-                AgentTemplate newAgent = replacement.reproduce();
+                AgentTemplate newAgent;
+                if(offspringGetVendettas)
+                    newAgent = replacement.reproduce(replacement.getVendettas());
+                else
+                    newAgent = replacement.reproduce(removal.getVendettas());
                 agents.remove(removal);
                 agents.add(newAgent);
 
@@ -275,10 +275,21 @@ public class PopulationModel
                 */
                 agents.stream().forEach((a) ->
                 {
-                    if (a.getVendettas().contains(replacement))
+                    HashMap<AgentTemplate, Boolean> vendettas = a.getVendettas();
+                    
+                    if (offspringGetVendettas && vendettas.containsKey(replacement))
                     {
-                        a.getVendettas().add(newAgent);
+                        vendettas.put(newAgent, vendettas.get(replacement));
                     }
+                    else if (!offspringGetVendettas && vendettas.containsKey(removal))
+                    {
+                        vendettas.put(newAgent, vendettas.get(removal));
+                    }
+                });
+                
+                agents.stream().forEach((a) -> 
+                {
+                    a.getVendettas().remove(removal);
                 });
             }
         }
@@ -312,21 +323,31 @@ public class PopulationModel
                     somethingChanged = true;
                 }
 
-                agents.stream().forEach((a) -> 
-                {
-                    a.getVendettas().remove(agent2);
-                });
-
-                AgentTemplate newAgent = agent1.reproduce();
+                AgentTemplate newAgent;
+                if (offspringGetVendettas)
+                    newAgent = agent1.reproduce(agent1.getVendettas());
+                else
+                    newAgent = agent1.reproduce(agent2.getVendettas());
                 agents.remove(agent2);
                 agents.add(newAgent);
                 
                 agents.stream().forEach((a) ->
                 {
-                    if (a.getVendettas().contains(agent1))
+                    HashMap<AgentTemplate, Boolean> vendettas = a.getVendettas();
+                    
+                    if (offspringGetVendettas && vendettas.containsKey(agent1))
                     {
-                        a.getVendettas().add(newAgent);
+                        vendettas.put(newAgent, vendettas.get(agent1));
                     }
+                    else if (!offspringGetVendettas && vendettas.containsKey(agent2))
+                    {
+                        vendettas.put(newAgent, vendettas.get(agent2));
+                    }
+                });
+                
+                agents.stream().forEach((a) -> 
+                {
+                    a.getVendettas().remove(agent2);
                 });
             }
             else if (agent2.getScore() > agent1.getScore())
@@ -336,21 +357,32 @@ public class PopulationModel
                     somethingChanged = true;
                 }
 
-                agents.stream().forEach((a) -> 
-                {
-                    a.getVendettas().remove(agent1);
-                });
-
-                AgentTemplate newAgent = agent2.reproduce();
+                AgentTemplate newAgent;
+                if (offspringGetVendettas)
+                    newAgent = agent2.reproduce(agent2.getVendettas());
+                else
+                    newAgent = agent2.reproduce(agent1.getVendettas());
+                
                 agents.remove(agent1);
                 agents.add(newAgent);
                 
                 agents.stream().forEach((a) ->
                 {
-                    if (a.getVendettas().contains(agent2))
+                    HashMap<AgentTemplate, Boolean> vendettas = a.getVendettas();
+                    
+                    if (offspringGetVendettas && vendettas.containsKey(agent2))
                     {
-                        a.getVendettas().add(newAgent);
+                        vendettas.put(newAgent, vendettas.get(agent2));
                     }
+                    else if (!offspringGetVendettas && vendettas.containsKey(agent1))
+                    {
+                        vendettas.put(newAgent, vendettas.get(agent1));
+                    }
+                });
+                
+                agents.stream().forEach((a) -> 
+                {
+                    a.getVendettas().remove(agent1);
                 });
             }
         }
@@ -574,6 +606,20 @@ public class PopulationModel
     public void setTerminate(int terminate)
     {
         this.terminate = terminate;
+    }
+
+    /**
+     * @return the offspringGetVendettas
+     */
+    public boolean isOffspringGetVendettas() {
+        return offspringGetVendettas;
+    }
+
+    /**
+     * @param offspringGetVendettas the offspringGetVendettas to set
+     */
+    public void setOffspringGetVendettas(boolean offspringGetVendettas) {
+        this.offspringGetVendettas = offspringGetVendettas;
     }
 }
     

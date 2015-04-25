@@ -6,6 +6,8 @@
 package Model.Agents;
 
 import Control.Controller;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
@@ -22,7 +24,10 @@ public class TitForTatAgent extends AgentTemplate
     {    
         try
         {
-            isCooperator = !vendettas.contains(competitor);
+            if (vendettas.containsKey(competitor))
+                isCooperator = !vendettas.get(competitor);
+            else
+                isCooperator = true;
         }
         catch (Exception e)
         {
@@ -33,27 +38,24 @@ public class TitForTatAgent extends AgentTemplate
 
     @Override
     public void playAgainst(AgentTemplate competitor) 
-    {
+    {        
         if (!competitor.isCooperator)
         {
-            if (!vendettas.contains(competitor))
-            {
-                vendettas.add(competitor);
-            }
+            vendettas.put(competitor, true);
         }
         else
         {
-            vendettas.remove(competitor);
+            vendettas.put(competitor, false);
         }
         
         super.playAgainst(competitor);
     }
 
     @Override
-    public AgentTemplate reproduce() 
+    public AgentTemplate reproduce(HashMap<AgentTemplate, Boolean> vendettas) 
     {
         TitForTatAgent newAgent = new TitForTatAgent(control);
-        newAgent.vendettas = this.vendettas;
+        newAgent.vendettas = vendettas;
         
         return newAgent;
     }

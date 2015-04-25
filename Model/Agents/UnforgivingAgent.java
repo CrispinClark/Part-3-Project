@@ -6,6 +6,7 @@
 package Model.Agents;
 
 import Control.Controller;
+import java.util.HashMap;
 
 /**
  *
@@ -23,10 +24,8 @@ public class UnforgivingAgent extends AgentTemplate
     {
         try
         {
-            if (vendettas.contains(competitor))
-            {
-                isCooperator = false;
-            }
+            if (vendettas.containsKey(competitor))
+                isCooperator = !vendettas.get(competitor);
             else
                 isCooperator = true;
         }
@@ -42,17 +41,17 @@ public class UnforgivingAgent extends AgentTemplate
     {
         if (!competitor.isCooperator)
         {
-            if (!vendettas.contains(competitor))
-                vendettas.add(competitor);
+            vendettas.put(competitor, true);
         }
         
         super.playAgainst(competitor);
     }
 
     @Override
-    public AgentTemplate reproduce() {
+    public AgentTemplate reproduce(HashMap<AgentTemplate, Boolean> vendettas) 
+    {
         UnforgivingAgent newAgent = new UnforgivingAgent(control);
-        newAgent.vendettas = this.vendettas;
+        newAgent.vendettas = vendettas;
         
         return newAgent;
     }

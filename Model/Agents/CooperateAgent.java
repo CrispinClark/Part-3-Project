@@ -6,6 +6,7 @@
 package Model.Agents;
 
 import Control.Controller;
+import java.util.HashMap;
 
 /**
  *
@@ -25,9 +26,10 @@ public class CooperateAgent extends AgentTemplate
     }
 
     @Override
-    public AgentTemplate reproduce() 
+    public AgentTemplate reproduce(HashMap<AgentTemplate, Boolean> vendettas) 
     {
         CooperateAgent newAgent = new CooperateAgent(control);
+        newAgent.vendettas = vendettas;
         
         return newAgent;
     }

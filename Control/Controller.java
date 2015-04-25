@@ -10,6 +10,7 @@ import Model.PopulationModel.Strategy;
 import View.RootPane;
 import java.util.ArrayList;
 import java.util.HashMap;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 
 /**
@@ -183,7 +184,6 @@ public class Controller
                 + "; R = " + model.getReward()
                 + "; S = " + model.getSucker()
                 + "; T = " + model.getTemptation());
-        
         ArrayList<XYChart.Series> seriesList = new ArrayList<>();
         
         for (Class s : strategyLevels.keySet())
@@ -201,5 +201,16 @@ public class Controller
         }
         
         view.getChart().getData().addAll(seriesList);
+        
     }
+    
+    public void setOffspringGetVendettas(boolean b)
+    {
+        model.setOffspringGetVendettas(b);
+    }
+    
+    public boolean getOffspringGetVendettas()
+    {
+        return model.isOffspringGetVendettas();
+    }   
 }

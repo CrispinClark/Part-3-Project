@@ -6,6 +6,8 @@
 package Model.Agents;
 
 import Control.Controller;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
@@ -25,9 +27,12 @@ public class DefectorAgent extends AgentTemplate
     }
 
     @Override
-    public AgentTemplate reproduce() 
+    public AgentTemplate reproduce(HashMap<AgentTemplate, Boolean> vendettas) 
     {
-        return new DefectorAgent(control);
+        DefectorAgent newAgent = new DefectorAgent(control);
+        newAgent.vendettas = vendettas;
+        
+        return newAgent;
     }
 
     @Override
