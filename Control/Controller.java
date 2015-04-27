@@ -22,9 +22,9 @@ public class Controller
     private RootPane view;
     private PopulationModel model;
     
-    public void runSimulation()
+    public void runSimulation(boolean inTesting)
     {
-        model.runSimulation();
+        model.runSimulation(inTesting);
     }
     
     public void setView(RootPane view)

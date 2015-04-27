@@ -146,7 +146,7 @@ public class RootPane extends BorderPane
                 
                 try
                 {
-                    control.runSimulation();
+                    control.runSimulation(false);
                     runBtn.setDisable(false);
                     saveButton.setDisable(false);
                 }

@@ -35,7 +35,7 @@ public class PopulationModel
     public enum Strategy{ALWAYS_DEFECT, ALWAYS_COOPERATE, TIT_FOR_TAT_PERSONAL,
                             ALTERNATE, RANDOM, TIT_FOR_TAT_IMPERSONAL, 
                             UNFORGIVING_IMPERSONAL, UNFORGIVING_PERSONAL};
-    public enum EvoType{TRIM, TOURNAMENT, STRATEGY_TRIM}
+    public enum EvoType{TRIM, TOURNAMENT}
     
     private EvoType evoType = EvoType.TRIM;
     
@@ -111,18 +111,15 @@ public class PopulationModel
         }
     }
     
-    public void runSimulation()
+    public HashMap<Class, ArrayList<Integer>> runSimulation(boolean inTesting)
     {        
         startTime = System.currentTimeMillis();
         System.out.println("Starting simulation...");
         randomlyFillPopulation();
-        System.out.println("Time taken to fill population = " 
-                + (System.currentTimeMillis() - startTime)/1000000);        
-        startTime = System.currentTimeMillis();
         
-        System.out.println("Adding graph data...");
         addGraphData();
-        System.out.println("Graph data added");
+        
+        int game = 0;
         
         while (!testConvergence())
         {
@@ -132,11 +129,13 @@ public class PopulationModel
             noOfDefectors = 0;
 
             shufflePopulation();
+            game = 0;
             
             for (int i = 0; i < agents.size()/2; i++)
                 
                 //for (int j = i +1; j < agents.size(); j++)
                 {
+                    game++;
                     int j = 2*i+1;
                     AgentTemplate agent1 = agents.get(2*i);
                     AgentTemplate agent2 = agents.get(j);
@@ -181,13 +180,16 @@ public class PopulationModel
                 }
                 
                 addGraphData();
-                System.out.println("Avg coop = " + noOfCooperators);
-                System.out.println("Avg def = " + noOfDefectors);   
+                //System.out.println("Avg coop = " + noOfCooperators);
+                //System.out.println("Avg def = " + noOfDefectors);   
             }
         }
         
         control.setGraphData(strategyLevels, noOfCooperators);
-        resetValues();
+        if (!inTesting)
+            resetValues();
+        
+        return strategyLevels;
     }
     
     public void resetValues()
@@ -354,7 +356,7 @@ public class PopulationModel
             }
             else if (agent2.getScore() > agent1.getScore())
             {
-                System.out.println(agent1.getScore() + " " + agent2.getScore());
+                //System.out.println(agent1.getScore() + " " + agent2.getScore());
                 if (agent1.getClass() != agent2.getClass())
                 {
                     somethingChanged = true;
@@ -458,12 +460,12 @@ public class PopulationModel
             stratList.set(graphLevel, x+1);
         });
         
-        System.out.println("Round " + iteration + ":");
+        /*System.out.println("Round " + iteration + ":");
         for (Class c : strategyLevels.keySet())
             System.out.println(c.getSimpleName()+ "= " + strategyLevels.get(c).get(graphLevel));
         System.out.println("Stuck value = " + stuckValue);
         System.out.println("");
-        
+        */
         graphLevel++;
     }        
 
