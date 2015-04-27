@@ -175,7 +175,7 @@ public class Controller
         model.addStrategy(strategy);
     }
 
-    public void setGraphData(HashMap<Class, ArrayList<Integer>> strategyLevels) 
+    public void setGraphData(HashMap<Class, ArrayList<Integer>> strategyLevels, int cooperation) 
     {
         view.getChart().getData().clear();
         view.getChart().setTitle("Population Size: " + model.getPopulationSize()
@@ -183,7 +183,8 @@ public class Controller
                 + "; P = " + model.getPunishment()
                 + "; R = " + model.getReward()
                 + "; S = " + model.getSucker()
-                + "; T = " + model.getTemptation());
+                + "; T = " + model.getTemptation()
+                + "; Final cooperation = " + cooperation);
         ArrayList<XYChart.Series> seriesList = new ArrayList<>();
         
         for (Class s : strategyLevels.keySet())

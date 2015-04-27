@@ -44,13 +44,16 @@ public class PopulationModel
     final private ArrayList<Strategy> appliedStrategies;
     final private HashMap<Class, ArrayList<Integer>> strategyLevels;
     private int graphLevel = 0;
-    
+ 
     private int iteration = 0;
+    
+    int noOfCooperators = 0;
+    int noOfDefectors = 0;
     
     private boolean somethingChanged = false;
     private int stuckValue = 0;
     private int stopLevel = 5;
-    private int terminate = 100000;
+    private int terminate = 10000;
     
     private long startTime;
     
@@ -71,6 +74,15 @@ public class PopulationModel
         
         for (int i = 0; i < getPopulationSize(); i++)
         {
+            /*if (i == 0)
+                agents.add(new DefectorAgent(control));
+            else
+                agents.add(new CooperateAgent(control));
+            
+            
+            strategyLevels.put(CooperateAgent.class, new ArrayList<>());
+            strategyLevels.put(DefectorAgent.class, new ArrayList<>());
+            */
             int strategyNumber = rand.nextInt(noOfStrategies);
             
             switch (appliedStrategies.get(strategyNumber))
@@ -112,31 +124,22 @@ public class PopulationModel
         addGraphData();
         System.out.println("Graph data added");
         
-        int noOfCooperators = 0;
-        int noOfDefectors = 0;
-        
         while (!testConvergence())
         {
-            /*System.out.println("Time taken to test convergence = " 
-                + (System.currentTimeMillis() - startTime)/1000000);        
-            startTime = System.currentTimeMillis();
-            */
             iteration++;
-            //System.out.println("Iteration " + iteration); 
-            
-            shufflePopulation();
-            /*System.out.println("Time taken to shuffle population = " 
-                + (System.currentTimeMillis() - startTime)/1000000);        
-            startTime = System.currentTimeMillis();
-            */
-            
-            for (int i = 0; i < agents.size(); i++)
-                for (int j = i +1; j < agents.size(); j++)
-                {
-                    AgentTemplate agent1 = agents.get(i);
-                    AgentTemplate agent2 = agents.get(j);
 
-                    //System.out.println(iteration + " Playing game " + i);
+            noOfCooperators = 0;
+            noOfDefectors = 0;
+
+            shufflePopulation();
+            
+            for (int i = 0; i < agents.size()/2; i++)
+                
+                //for (int j = i +1; j < agents.size(); j++)
+                {
+                    int j = 2*i+1;
+                    AgentTemplate agent1 = agents.get(2*i);
+                    AgentTemplate agent2 = agents.get(j);
 
                     try
                     {
@@ -163,8 +166,8 @@ public class PopulationModel
                     }
                 }
                        
-                //if (iteration % noOfGames == 0)
-                {
+            if (iteration % noOfGames == 0)
+            {
                 
                 switch (evoType)
                 {
@@ -178,15 +181,12 @@ public class PopulationModel
                 }
                 
                 addGraphData();
-                System.out.println("Avg coop = " + noOfCooperators/noOfGames);
-                System.out.println("Avg def = " + noOfDefectors/noOfGames);
-                
-                noOfCooperators = 0;
-                noOfDefectors = 0;
+                System.out.println("Avg coop = " + noOfCooperators);
+                System.out.println("Avg def = " + noOfDefectors);   
             }
         }
         
-        control.setGraphData(strategyLevels);
+        control.setGraphData(strategyLevels, noOfCooperators);
         resetValues();
     }
     
@@ -318,6 +318,8 @@ public class PopulationModel
                 
             if (agent1.getScore() > agent2.getScore())
             {
+                //System.out.println(agent1.getScore() + " " + agent2.getScore());
+                
                 if (agent1.getClass() != agent2.getClass())
                 {
                     somethingChanged = true;
@@ -352,6 +354,7 @@ public class PopulationModel
             }
             else if (agent2.getScore() > agent1.getScore())
             {
+                System.out.println(agent1.getScore() + " " + agent2.getScore());
                 if (agent1.getClass() != agent2.getClass())
                 {
                     somethingChanged = true;

@@ -28,7 +28,7 @@ public class ApplicationLauncher extends Application {
         control.setView(view);
         control.setModel(model);
         
-        primaryStage.setScene(new Scene(view, 1000, 600));
+        primaryStage.setScene(new Scene(view, 1000, 800));
         primaryStage.show();
         
         view.fillDefaults();

@@ -31,6 +31,7 @@ public abstract class AgentTemplate implements Comparable
     @Override
     abstract public String toString();
     abstract public void makeDecision(AgentTemplate competitor);
+    abstract public AgentTemplate reproduce(HashMap<AgentTemplate, Boolean> vendettas);
     
     public void playAgainst(AgentTemplate competitor)
     {
@@ -43,8 +44,7 @@ public abstract class AgentTemplate implements Comparable
         else
             totalScore += control.getPunishment();
     }
-    
-    abstract public AgentTemplate reproduce(HashMap<AgentTemplate, Boolean> vendettas);
+
     
     public boolean isCooperator()
     {

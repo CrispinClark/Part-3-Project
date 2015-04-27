@@ -169,7 +169,7 @@ public class RootPane extends BorderPane
                     fc.getExtensionFilters().addAll(
                         new FileChooser.ExtensionFilter("PNG", "*.png")
                     );
-                    fc.setInitialDirectory(new File("C:/Users/Crispin/Documents/3200 - Individual Project"));
+                    fc.setInitialDirectory(new File("C:/Users/Crispin/Dropbox/3200 - Part III Project/Final Report/Report Graphs"));
                     
                     File file = fc.showSaveDialog(window);
                     
